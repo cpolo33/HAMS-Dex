@@ -1,5 +1,5 @@
-import {Button, Input, Radio, Slider, Switch} from 'antd';
-import React, {useEffect, useState} from 'react';
+import { Button, Input, Radio, Slider, Switch } from 'antd';
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import {
   useFeeDiscountKeys,
@@ -12,26 +12,30 @@ import {
   useSelectedQuoteCurrencyAccount,
   useSelectedQuoteCurrencyBalances,
 } from '../utils/markets';
-import {useWallet} from '../utils/wallet';
-import {notify} from '../utils/notifications';
-import {floorToDecimal, getDecimalCount, roundToDecimal,} from '../utils/utils';
-import {useSendConnection} from '../utils/connection';
+import { useWallet } from '../utils/wallet';
+import { notify } from '../utils/notifications';
+import { floorToDecimal, getDecimalCount, roundToDecimal, } from '../utils/utils';
+import { useSendConnection } from '../utils/connection';
 import FloatingElement from './layout/FloatingElement';
-import {getUnixTs, placeOrder} from '../utils/send';
-import {SwitchChangeEventHandler} from 'antd/es/switch';
-import {refreshCache} from '../utils/fetch-loop';
+import { getUnixTs, placeOrder } from '../utils/send';
+import { SwitchChangeEventHandler } from 'antd/es/switch';
+import { refreshCache } from '../utils/fetch-loop';
 import tuple from 'immutable-tuple';
 
 const SellButton = styled(Button)`
   margin: 20px 0px 0px 0px;
-  background: #f23b69;
-  border-color: #f23b69;
+  background: #FF810A;
+  border-color: #FF810A;
+  border-radius: 4px;
+  font-weight: bold;
 `;
 
 const BuyButton = styled(Button)`
   margin: 20px 0px 0px 0px;
-  background: #02bf76;
-  border-color: #02bf76;
+  background: #FF810A;
+  border-color: #FF810A;
+  border-radius: 4px;
+  font-weight: bold;
 `;
 
 const sliderMarks = {
@@ -115,8 +119,7 @@ export default function TradeForm({
         await market?.findBestFeeDiscountKey(sendConnection, publicKey);
         const endTime = getUnixTs();
         console.log(
-          `Finished refreshing accounts for ${market.address} after ${
-            endTime - startTime
+          `Finished refreshing accounts for ${market.address} after ${endTime - startTime
           }`,
         );
       } catch (e) {
@@ -282,7 +285,7 @@ export default function TradeForm({
           value={side}
           buttonStyle="solid"
           style={{
-            marginBottom: 8,
+            marginBottom: 24,
             width: '100%',
           }}
         >
@@ -291,60 +294,60 @@ export default function TradeForm({
             style={{
               width: '50%',
               textAlign: 'center',
-              background: side === 'buy' ? '#02bf76' : '',
-              borderColor: side === 'buy' ? '#02bf76' : '',
+              color: side === 'buy' ? '#FF810A' : '#676767',
+              background: 'none',
+              border: 'none',
+              borderBottom: side === 'buy' ? '2px solid #FF810A' : 'none',
             }}
           >
-            BUY
+            Buy
           </Radio.Button>
           <Radio.Button
             value="sell"
             style={{
               width: '50%',
               textAlign: 'center',
-              background: side === 'sell' ? '#F23B69' : '',
-              borderColor: side === 'sell' ? '#F23B69' : '',
+              background: 'none',
+              border: 'none',
+              color: side === 'sell' ? '#FF810A' : '#676767',
+              borderBottom: side === 'sell' ? '2px solid #FF810A' : 'none',
             }}
           >
-            SELL
+            Sell
           </Radio.Button>
         </Radio.Group>
         <Input
           style={{ textAlign: 'right', paddingBottom: 8 }}
           addonBefore={<div style={{ width: '30px' }}>Price</div>}
           suffix={
-            <span style={{ fontSize: 10, opacity: 0.5 }}>{quoteCurrency}</span>
+            <span style={{ fontSize: 12, opacity: 0.5 }}>{quoteCurrency}</span>
           }
           value={price}
           type="number"
           step={market?.tickSize || 1}
           onChange={(e) => setPrice(parseFloat(e.target.value))}
         />
-        <Input.Group compact style={{ paddingBottom: 8 }}>
-          <Input
-            style={{ width: 'calc(50% + 30px)', textAlign: 'right' }}
-            addonBefore={<div style={{ width: '30px' }}>Size</div>}
-            suffix={
-              <span style={{ fontSize: 10, opacity: 0.5 }}>{baseCurrency}</span>
-            }
-            value={baseSize}
-            type="number"
-            step={market?.minOrderSize || 1}
-            onChange={(e) => onSetBaseSize(parseFloat(e.target.value))}
-          />
-          <Input
-            style={{ width: 'calc(50% - 30px)', textAlign: 'right' }}
-            suffix={
-              <span style={{ fontSize: 10, opacity: 0.5 }}>
-                {quoteCurrency}
-              </span>
-            }
-            value={quoteSize}
-            type="number"
-            step={market?.minOrderSize || 1}
-            onChange={(e) => onSetQuoteSize(parseFloat(e.target.value))}
-          />
-        </Input.Group>
+        <Input
+          style={{ textAlign: 'right', paddingBottom: 8 }}
+          addonBefore={<div style={{ width: '30px' }}>Size</div>}
+          suffix={
+            <span style={{ fontSize: 12, opacity: 0.5 }}>{baseCurrency}</span>
+          }
+          value={baseSize}
+          type="number"
+          step={market?.minOrderSize || 1}
+          onChange={(e) => onSetBaseSize(parseFloat(e.target.value))}
+        />
+        <Input
+          style={{ textAlign: 'right', paddingBottom: 8, marginBottom: 12 }}
+          suffix={
+            <span style={{ fontSize: 12, opacity: 0.5, marginTop: 4 }}>{quoteCurrency}</span>
+          }
+          value={quoteSize}
+          type="number"
+          step={market?.minOrderSize || 1}
+          onChange={(e) => onSetQuoteSize(parseFloat(e.target.value))}
+        />
         <Slider
           value={sizeFraction}
           tipFormatter={(value) => `${value}%`}

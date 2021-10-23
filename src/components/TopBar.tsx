@@ -1,12 +1,10 @@
 import {
-  InfoCircleOutlined,
   PlusCircleOutlined,
   SettingOutlined,
 } from '@ant-design/icons';
 import { Button, Col, Menu, Popover, Row, Select } from 'antd';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useHistory, useLocation } from 'react-router-dom';
-import logo from '../assets/logo.svg';
 import styled from 'styled-components';
 import { useWallet } from '../utils/wallet';
 import { ENDPOINTS, useConnectionConfig } from '../utils/connection';
@@ -20,7 +18,7 @@ import AppSearch from './AppSearch';
 import { getTradePageUrl } from '../utils/markets';
 
 const Wrapper = styled.div`
-  background-color: #0d1017;
+  background: linear-gradient(100.61deg, #090B0B 0%, #1C2222 100%);
   display: flex;
   flex-direction: row;
   justify-content: flex-end;
@@ -30,24 +28,25 @@ const Wrapper = styled.div`
 const LogoWrapper = styled.div`
   display: flex;
   align-items: center;
-  color: #2abdd2;
-  font-weight: bold;
   cursor: pointer;
   img {
-    height: 30px;
+    height: 34px;
     margin-right: 8px;
+    margin-top: 4px;
   }
 `;
 
 const EXTERNAL_LINKS = {
-  '/learn': 'https://docs.projectserum.com/trade-on-serum-dex/trade-on-serum-dex-1',
+  '/learn': 'https://serum-academy.com/en/serum-dex/',
   '/add-market': 'https://serum-academy.com/en/add-market/',
   '/wallet-support': 'https://serum-academy.com/en/wallet-support',
   '/dex-list': 'https://serum-academy.com/en/dex-list/',
   '/developer-resources': 'https://serum-academy.com/en/developer-resources/',
-  '/explorer': 'https://solscan.io',
+  '/explorer': 'https://explorer.solana.com',
   '/srm-faq': 'https://projectserum.com/srm-faq',
   '/swap': 'https://swap.projectserum.com',
+  'https://solapeswap.io/#/market/4zffJaPyeXZ2wr4whHgP39QyTfurqZ2BEd4M5W6SEuon': 'https://solapeswap.io/#/market/4zffJaPyeXZ2wr4whHgP39QyTfurqZ2BEd4M5W6SEuon',
+  'https://apexlev.solapeswap.io/': 'https://apexlev.solapeswap.io/',
 };
 
 export default function TopBar() {
@@ -97,8 +96,8 @@ export default function TopBar() {
     try {
       const connection = new Connection(info.endpoint, 'recent');
       connection
-        .getBlockTime(0)
-        .then(() => {
+        .getEpochInfo()
+        .then((result) => {
           setTestingConnection(true);
           console.log(`testing connection to ${info.endpoint}`);
           const newCustomEndpoints = [
@@ -141,8 +140,7 @@ export default function TopBar() {
       />
       <Wrapper>
         <LogoWrapper onClick={() => history.push(tradePageUrl)}>
-          <img src={logo} alt="" />
-          {'SERUM'}
+          <img src="/solape.svg" alt="" />
         </LogoWrapper>
         <Menu
           mode="horizontal"
@@ -156,8 +154,14 @@ export default function TopBar() {
             flex: 1,
           }}
         >
-          <Menu.Item key={tradePageUrl} style={{ margin: '0 10px 0 20px' }}>
-            TRADE
+          <Menu.Item key={tradePageUrl} style={{ margin: '0 0 0 20px' }}>
+            Trade
+          </Menu.Item>
+          <Menu.Item key="https://apexlev.solapeswap.io/" style={{ margin: '0', color: '#FFE6CC', fontWeight: 'normal' }}>
+            <a href="https://apexlev.solapeswap.io/">Leverage</a>
+          </Menu.Item>
+          <Menu.Item key="https://solapeswap.io/#/market/4zffJaPyeXZ2wr4whHgP39QyTfurqZ2BEd4M5W6SEuon" style={{ margin: '0', color: '#FFE6CC', fontWeight: 'normal' }}>
+            <a href="https://solapeswap.io/#/market/4zffJaPyeXZ2wr4whHgP39QyTfurqZ2BEd4M5W6SEuon">Buy SOLAPE</a>
           </Menu.Item>
           {!searchFocussed && (
             <Menu.Item key="/swap" style={{ margin: '0 10px' }}>
@@ -166,33 +170,32 @@ export default function TopBar() {
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                SWAP
+
               </a>
             </Menu.Item>
           )}
           {connected && (!searchFocussed || location.pathname === '/balances') && (
             <Menu.Item key="/balances" style={{ margin: '0 10px' }}>
-              BALANCES
             </Menu.Item>
           )}
           {connected && (!searchFocussed || location.pathname === '/orders') && (
             <Menu.Item key="/orders" style={{ margin: '0 10px' }}>
-              ORDERS
+
             </Menu.Item>
           )}
           {connected && (!searchFocussed || location.pathname === '/convert') && (
             <Menu.Item key="/convert" style={{ margin: '0 10px' }}>
-              CONVERT
+
             </Menu.Item>
           )}
           {(!searchFocussed || location.pathname === '/list-new-market') && (
             <Menu.Item key="/list-new-market" style={{ margin: '0 10px' }}>
-              ADD MARKET
+
             </Menu.Item>
           )}
           {!searchFocussed && (
             <Menu.SubMenu
-              title="LEARN"
+              title=""
               onTitleClick={() =>
                 window.open(EXTERNAL_LINKS['/learn'], '_blank')
               }
@@ -272,15 +275,16 @@ export default function TopBar() {
         <div>
           <Row
             align="middle"
-            style={{ paddingLeft: 5, paddingRight: 5 }}
+            style={{ paddingLeft: 12, paddingRight: 5 }}
             gutter={16}
           >
             <Col>
               <PlusCircleOutlined
-                style={{ color: '#2abdd2' }}
+                style={{ color: '#fff' }}
                 onClick={() => setAddEndpointVisible(true)}
               />
             </Col>
+            {/*
             <Col>
               <Popover
                 content={endpoint}
@@ -304,6 +308,7 @@ export default function TopBar() {
                 ))}
               </Select>
             </Col>
+            */}
           </Row>
         </div>
         {connected && (
@@ -314,7 +319,7 @@ export default function TopBar() {
               title="Settings"
               trigger="click"
             >
-              <Button style={{ marginRight: 8 }}>
+              <Button style={{ marginRight: 8, marginLeft: 10 }}>
                 <SettingOutlined />
                 Settings
               </Button>

@@ -1,53 +1,69 @@
 import React from 'react';
-import { Layout, Row, Col, Grid } from 'antd';
+import { Layout, Row, Col } from 'antd';
 import Link from './Link';
 import { helpUrls } from './HelpUrls';
-import { useReferrer } from '../utils/referrer';
 const { Footer } = Layout;
-const { useBreakpoint } = Grid;
 
 const footerElements = [
-  {
-    description: 'Serum Developer Resources',
-    link: helpUrls.developerResources,
-  },
-  { description: 'Discord', link: helpUrls.discord },
+  { description: 'Website', link: helpUrls.website },
+  { description: 'Project Info', link: helpUrls.projectInfo },
   { description: 'Telegram', link: helpUrls.telegram },
-  { description: 'GitHub', link: helpUrls.github },
-  { description: 'Project Serum', link: helpUrls.projectSerum },
-  { description: 'Solana Network', link: helpUrls.solanaBeach },
+  { description: 'Twitter', link: helpUrls.twitter },
+  { description: 'NFT', link: helpUrls.nft },
+  { description: 'List your token', link: helpUrls.listYourToken },
 ];
 
 export const CustomFooter = () => {
-  const smallScreen = !useBreakpoint().lg;
-  const { refCode, allowRefLink } = useReferrer();
   return (
     <Footer
-      style={{
-        height: '55px',
-        paddingBottom: 10,
-        paddingTop: 10,
+    style={{
+      minHeight: '15px',
+      paddingBottom: 5,
+      paddingTop: 5,
+      background: '#090b0b',
+      alignItems: 'center',
+    }} >
+      <Row
+        gutter={[16, 20]}
+        style={{
+          alignItems: 'center',
+          placeContent: 'center',
       }}
     >
-      {refCode && allowRefLink && (
-        <Row justify="center">Your referrer is {refCode}</Row>
-      )}
-      <Row align="middle" gutter={[16, 4]}>
-        {!smallScreen && (
-          <>
-            <Col flex="auto" />
-            {footerElements.map((elem, index) => {
-              return (
-                <Col key={index + ''}>
-                  <Link external to={elem.link}>
-                    {elem.description}
-                  </Link>
-                </Col>
-              );
-            })}
-          </>
-        )}
-        <Col flex="auto">{/*  <DexProgramSelector />*/}</Col>
+        <Col
+          style={{
+            alignItems: 'center',
+            placeContent: 'center',
+            textAlign: 'center'
+          }}
+          flex="auto" >
+          {"© Space Hamster All rights reserved 2021"}
+        </Col>
+        <Col
+          style={{
+            alignItems: 'center',
+            placeContent: 'center',
+            textAlign: 'center'
+          }}
+          flex="auto" >
+          <Row 
+            style={{
+              alignItems: 'center',
+              placeContent: 'center',
+              textAlign: 'center'
+            }}
+          >
+          {footerElements.map((elem, index) => {
+            return (
+              <Col key={index + ''} style={{paddingLeft: '20px', paddingRight: '20px'}} >
+                <Link external to={elem.link}>
+                {elem.description}
+                </Link>
+              </Col>
+            );
+          })}
+          </Row>
+        </Col>
       </Row>
     </Footer>
   );

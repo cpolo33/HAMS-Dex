@@ -1,4 +1,4 @@
-import { Col, Row } from 'antd';
+import { Col, Row, Divider } from 'antd';
 import React, { useRef, useEffect, useState } from 'react';
 import styled, { css } from 'styled-components';
 import { useMarket, useOrderbook, useMarkPrice } from '../utils/markets';
@@ -13,8 +13,8 @@ const Title = styled.div`
 `;
 
 const SizeTitle = styled(Row)`
-  padding: 20px 0 14px;
-  color: #434a59;
+  padding: 4px 0 4px 0px;
+  color: #676767;
 `;
 
 const MarkPriceTitle = styled(Row)`
@@ -23,8 +23,8 @@ const MarkPriceTitle = styled(Row)`
 `;
 
 const Line = styled.div`
-  text-align: right;
-  float: right;
+  text-align: ${(props) => (props.invert ? 'left' : 'right')};
+  float: ${(props) => (props.invert ? 'left' : 'right')};
   height: 100%;
   ${(props) =>
     props['data-width'] &&
@@ -40,13 +40,29 @@ const Line = styled.div`
 
 const Price = styled.div`
   position: absolute;
-  right: 5px;
-  color: white;
+  ${(props) =>
+    props.invert
+      ? css`
+          left: 5px;
+        `
+      : css`
+          right: 5px;
+        `}
+  ${(props) =>
+    props['data-color'] &&
+    css`
+      color: ${props['data-color']};
+    `}
 `;
 
-export default function Orderbook({ smallScreen, depth = 7, onPrice, onSize }) {
+export default function Orderbook({
+  smallScreen,
+  depth = 80,
+  onPrice,
+  onSize,
+}) {
   const markPrice = useMarkPrice();
-  const [orderbook] = useOrderbook();
+  const [orderbook] = useOrderbook(90);
   const { baseCurrency, quoteCurrency } = useMarket();
 
   const currentOrderbookData = useRef(null);
@@ -108,47 +124,161 @@ export default function Orderbook({ smallScreen, depth = 7, onPrice, onSize }) {
   return (
     <FloatingElement
       style={
-        smallScreen ? { flex: 1 } : { height: '500px', overflow: 'hidden' }
+        smallScreen ? { flex: 1, overflow: 'hidden' } : { overflow: 'hidden' }
       }
     >
-      <Title>Orderbook</Title>
-      <SizeTitle>
-        <Col span={12} style={{ textAlign: 'left' }}>
-          Size ({baseCurrency})
-        </Col>
-        <Col span={12} style={{ textAlign: 'right' }}>
-          Price ({quoteCurrency})
-        </Col>
-      </SizeTitle>
-      {orderbookData?.asks.map(({ price, size, sizePercent }) => (
-        <OrderbookRow
-          key={price + ''}
-          price={price}
-          size={size}
-          side={'sell'}
-          sizePercent={sizePercent}
-          onPriceClick={() => onPrice(price)}
-          onSizeClick={() => onSize(size)}
-        />
-      ))}
-      <MarkPriceComponent markPrice={markPrice} />
-      {orderbookData?.bids.map(({ price, size, sizePercent }) => (
-        <OrderbookRow
-          key={price + ''}
-          price={price}
-          size={size}
-          side={'buy'}
-          sizePercent={sizePercent}
-          onPriceClick={() => onPrice(price)}
-          onSizeClick={() => onSize(size)}
-        />
-      ))}
+      <Divider>
+        <Title>Orderbook</Title>
+      </Divider>
+      {1 ? ( //smallScreen ? (
+        <>
+          <MarkPriceComponent markPrice={markPrice} />
+          <div
+            style={{
+              marginRight: '-20px',
+              paddingRight: '5px',
+              overflowY: 'scroll',
+              maxHeight: 400,
+            }}
+          >
+            <Row style={{ flexWrap: 'nowrap' }}>
+              <Col flex={1}>
+                <SizeTitle>
+                  <Col
+                    span={12}
+                    style={{
+                      textAlign: 'left',
+                      whiteSpace: 'nowrap',
+                      textOverflow: 'ellipsis',
+                      overflow: 'hidden',
+                    }}
+                  >
+                    Size ({baseCurrency})
+                  </Col>
+                  <Col
+                    span={12}
+                    style={{
+                      textAlign: 'right',
+                      paddingRight: 10,
+                      whiteSpace: 'nowrap',
+                      textOverflow: 'ellipsis',
+                      overflow: 'hidden',
+                    }}
+                  >
+                    Price ({quoteCurrency})
+                  </Col>
+                </SizeTitle>
+                {orderbookData?.bids.map(({ price, size, sizePercent }) => (
+                  <OrderbookRow
+                    key={price + ''}
+                    price={price}
+                    size={size}
+                    side={'buy'}
+                    sizePercent={sizePercent}
+                    onPriceClick={() => onPrice(price)}
+                    onSizeClick={() => onSize(size)}
+                  />
+                ))}
+              </Col>
+              <Col flex={1} style={{ paddingLeft: 2 }}>
+                <SizeTitle>
+                  <Col
+                    span={12}
+                    style={{
+                      textAlign: 'left',
+                      whiteSpace: 'nowrap',
+                      textOverflow: 'ellipsis',
+                      overflow: 'hidden',
+                    }}
+                  >
+                    Price ({quoteCurrency})
+                  </Col>
+                  <Col
+                    span={12}
+                    style={{
+                      textAlign: 'right',
+                      whiteSpace: 'nowrap',
+                      textOverflow: 'ellipsis',
+                      overflow: 'hidden',
+                    }}
+                  >
+                    Size ({baseCurrency})
+                  </Col>
+                </SizeTitle>
+                {orderbookData?.asks
+                  .slice(0)
+                  .reverse()
+                  .map(({ price, size, sizePercent }) => (
+                    <OrderbookRow
+                      invert={true}
+                      key={price + ''}
+                      price={price}
+                      size={size}
+                      side={'sell'}
+                      sizePercent={sizePercent}
+                      onPriceClick={() => onPrice(price)}
+                      onSizeClick={() => onSize(size)}
+                    />
+                  ))}
+              </Col>
+            </Row>
+          </div>
+        </>
+      ) : (
+        <>
+          <SizeTitle>
+            <Col
+              span={12}
+              style={{
+                textAlign: 'left',
+                whiteSpace: 'nowrap',
+                textOverflow: 'ellipsis',
+              }}
+            >
+              Size ({baseCurrency})
+            </Col>
+            <Col
+              span={12}
+              style={{
+                textAlign: 'right',
+                whiteSpace: 'nowrap',
+                textOverflow: 'ellipsis',
+              }}
+            >
+              Price ({quoteCurrency})
+            </Col>
+          </SizeTitle>
+          {orderbookData?.asks.map(({ price, size, sizePercent }) => (
+            <OrderbookRow
+              key={price + ''}
+              price={price}
+              size={size}
+              side={'sell'}
+              sizePercent={sizePercent}
+              onPriceClick={() => onPrice(price)}
+              onSizeClick={() => onSize(size)}
+            />
+          ))}
+          <MarkPriceComponent markPrice={markPrice} />
+          {orderbookData?.bids.map(({ price, size, sizePercent }) => (
+            <OrderbookRow
+              key={price + ''}
+              price={price}
+              size={size}
+              side={'buy'}
+              sizePercent={sizePercent}
+              onPriceClick={() => onPrice(price)}
+              onSizeClick={() => onSize(size)}
+            />
+          ))}
+        </>
+      )}
     </FloatingElement>
   );
 }
 
 const OrderbookRow = React.memo(
-  ({ side, price, size, sizePercent, onSizeClick, onPriceClick }) => {
+  ({ side, price, size, sizePercent, onSizeClick, onPriceClick, invert }) => {
     const element = useRef();
 
     const { market } = useMarket();
@@ -178,20 +308,45 @@ const OrderbookRow = React.memo(
 
     return (
       <Row ref={element} style={{ marginBottom: 1 }} onClick={onSizeClick}>
-        <Col span={12} style={{ textAlign: 'left' }}>
-          {formattedSize}
-        </Col>
-        <Col span={12} style={{ textAlign: 'right' }}>
-          <Line
-            data-width={sizePercent + '%'}
-            data-bgcolor={
-              side === 'buy'
-                ? 'rgba(65, 199, 122, 0.6)'
-                : 'rgba(242, 60, 105, 0.6)'
-            }
-          />
-          <Price onClick={onPriceClick}>{formattedPrice}</Price>
-        </Col>
+        {invert ? (
+          <>
+            <Col span={12} style={{ textAlign: 'left' }}>
+              <Line
+                invert
+                data-width={sizePercent + '%'}
+                data-bgcolor={side === 'buy' ? '#06894A' : '#A2024C'}
+              />
+              <Price
+                invert
+                data-color={side === 'buy' ? '#ffffff' : 'white'}
+                onClick={onPriceClick}
+              >
+                {formattedPrice}
+              </Price>
+            </Col>
+            <Col span={12} style={{ textAlign: 'right' }}>
+              {formattedSize}
+            </Col>
+          </>
+        ) : (
+          <>
+            <Col span={12} style={{ textAlign: 'left' }}>
+              {formattedSize}
+            </Col>
+            <Col span={12} style={{ textAlign: 'right' }}>
+              <Line
+                data-width={sizePercent + '%'}
+                data-bgcolor={side === 'buy' ? '#06894A' : '#A2024C'}
+              />
+              <Price
+                data-color={side === 'buy' ? '#ffffff' : 'white'}
+                onClick={onPriceClick}
+              >
+                {formattedPrice}
+              </Price>
+            </Col>
+          </>
+        )}
       </Row>
     );
   },
@@ -206,9 +361,9 @@ const MarkPriceComponent = React.memo(
 
     let markPriceColor =
       markPrice > previousMarkPrice
-        ? '#41C77A'
+        ? '#0AD171'
         : markPrice < previousMarkPrice
-        ? '#F23B69'
+        ? '#FD499D'
         : 'white';
 
     let formattedMarkPrice =

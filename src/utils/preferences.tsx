@@ -35,9 +35,9 @@ export function PreferencesProvider({ children }) {
 
   useInterval(() => {
     const autoSettle = async () => {
-			if (AUTO_SETTLE_DISABLED_OVERRIDE) {
-				return;
-			}
+      if (AUTO_SETTLE_DISABLED_OVERRIDE) {
+        return;
+      }
       if (!wallet) {
         return;
       }

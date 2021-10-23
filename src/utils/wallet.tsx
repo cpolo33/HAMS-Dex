@@ -187,9 +187,9 @@ export function WalletProvider({ children }) {
         visible={isModalVisible}
         okButtonProps={{ style: { display: 'none' } }}
         onCancel={close}
-        width={400}
+        width={512}
       >
-        {WALLET_PROVIDERS.map((provider) => {
+        {WALLET_PROVIDERS.map((provider, index) => {
           const onClick = function () {
             setProviderUrl(provider.url);
             setAutoConnect(true);
@@ -201,13 +201,14 @@ export function WalletProvider({ children }) {
               size="large"
               type={providerUrl === provider.url ? 'primary' : 'ghost'}
               onClick={onClick}
+              className={!index ? 'recommended-wallet' : undefined}
               icon={
                 <img
                   alt={`${provider.name}`}
                   width={20}
                   height={20}
                   src={provider.icon}
-                  style={{ marginRight: 8 }}
+                  style={{ marginRight: 20 }}
                 />
               }
               style={{
@@ -218,6 +219,19 @@ export function WalletProvider({ children }) {
               }}
             >
               {provider.name}
+              {!index &&
+                <div>
+                  <svg width="193" height="72" viewBox="0 0 193 72" fill="none">
+                    <path d="M0 0H185C189.418 0 193 3.58172 193 8V64C193 68.4183 189.418 72 185 72H28L0 0Z" fill="url(#paint0_linear)"/>
+                      <defs>
+                        <linearGradient id="paint0_linear" x1="0" y1="0" x2="183.011" y2="91.8942" gradientUnits="userSpaceOnUse">
+                          <stop stop-color="#B85900"/>
+                          <stop offset="1" stop-color="#FF810A"/>
+                        </linearGradient>
+                      </defs>
+                    </svg>
+                    <span>Recommended</span>
+                  </div>}
             </Button>
           );
         })}

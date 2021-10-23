@@ -4,6 +4,7 @@ import styled from 'styled-components';
 import Orderbook from '../components/Orderbook';
 import UserInfoTable from '../components/UserInfoTable';
 import StandaloneBalancesDisplay from '../components/StandaloneBalancesDisplay';
+import FloatingElement from '../components/layout/FloatingElement';
 import {
   getMarketInfos,
   getTradePageUrl,
@@ -11,6 +12,7 @@ import {
   useMarket,
   useMarketsList,
   useUnmigratedDeprecatedMarkets,
+  useMarkPrice,
 } from '../utils/markets';
 import TradeForm from '../components/TradeForm';
 import TradesTable from '../components/TradesTable';
@@ -27,10 +29,6 @@ import { useHistory, useParams } from 'react-router-dom';
 import { nanoid } from 'nanoid';
 
 import { TVChartContainer } from '../components/TradingView';
-// Use following stub for quick setup without the TradingView private dependency
-// function TVChartContainer() {
-//   return <></>
-// }
 
 const { Option, OptGroup } = Select;
 
@@ -162,7 +160,7 @@ function TradePageInner() {
       <Wrapper>
         <Row
           align="middle"
-          style={{ paddingLeft: 5, paddingRight: 5 }}
+          style={{ paddingLeft: 5, paddingRight: 5, marginBottom: 16 }}
           gutter={16}
         >
           <Col>
@@ -238,84 +236,90 @@ function MarketSelector({
     )
     ?.address?.toBase58();
 
+  const marketName = markets.find(m => m.address == selectedMarket)?.name
+
   return (
-    <Select
-      showSearch
-      size={'large'}
-      style={{ width: 200 }}
-      placeholder={placeholder || 'Select a market'}
-      optionFilterProp="name"
-      onSelect={onSetMarketAddress}
-      listHeight={400}
-      value={selectedMarket}
-      filterOption={(input, option) =>
-        option?.name?.toLowerCase().indexOf(input.toLowerCase()) >= 0
-      }
-    >
-      {customMarkets && customMarkets.length > 0 && (
-        <OptGroup label="Custom">
-          {customMarkets.map(({ address, name }, i) => (
-            <Option
-              value={address}
-              key={nanoid()}
-              name={name}
-              style={{
-                padding: '10px',
-                // @ts-ignore
-                backgroundColor: i % 2 === 0 ? 'rgb(39, 44, 61)' : null,
-              }}
-            >
-              <Row>
-                <Col flex="auto">{name}</Col>
-                {selectedMarket !== address && (
-                  <Col>
-                    <DeleteOutlined
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        e.nativeEvent.stopImmediatePropagation();
-                        onDeleteCustomMarket && onDeleteCustomMarket(address);
-                      }}
-                    />
-                  </Col>
-                )}
-              </Row>
-            </Option>
-          ))}
+    <div style={{ position: 'relative' }}>
+      <Select
+        showSearch
+        size={'large'}
+        style={{ width: 200 }}
+        placeholder={placeholder || 'Select a market'}
+        optionFilterProp="name"
+        onSelect={onSetMarketAddress}
+        listHeight={400}
+        value={selectedMarket}
+        filterOption={(input, option) =>
+          option?.name?.toLowerCase().indexOf(input.toLowerCase()) >= 0
+        }
+      >
+        {customMarkets && customMarkets.length > 0 && (
+          <OptGroup label="Custom">
+            {customMarkets.map(({ address, name }, i) => (
+              <Option
+                value={address}
+                key={nanoid()}
+                name={name}
+                style={{
+                  padding: '10px',
+                  // @ts-ignore
+                  backgroundColor: i % 2 === 0 ? 'rgb(39, 44, 61)' : null,
+                }}
+              >
+                <Row>
+                  <Col flex="auto">{name}</Col>
+                  {selectedMarket !== address && (
+                    <Col>
+                      <DeleteOutlined
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          e.nativeEvent.stopImmediatePropagation();
+                          onDeleteCustomMarket && onDeleteCustomMarket(address);
+                        }}
+                      />
+                    </Col>
+                  )}
+                </Row>
+              </Option>
+            ))}
+          </OptGroup>
+        )}
+        <OptGroup label="Markets">
+          {markets
+            .sort((a, b) =>
+              extractQuote(a.name) === 'USDT' && extractQuote(b.name) !== 'USDT'
+                ? -1
+                : extractQuote(a.name) !== 'USDT' &&
+                  extractQuote(b.name) === 'USDT'
+                  ? 1
+                  : 0,
+            )
+            .sort((a, b) =>
+              extractBase(a.name) < extractBase(b.name)
+                ? -1
+                : extractBase(a.name) > extractBase(b.name)
+                  ? 1
+                  : 0,
+            )
+            .map(({ address, name, deprecated }, i) => (
+              <Option
+                value={address.toBase58()}
+                key={nanoid()}
+                name={name}
+                style={{
+                  padding: '10px',
+                  // @ts-ignore
+                  backgroundColor: i % 2 === 0 ? '#1C2222' : '#121616',
+                }}
+              >
+                <span>
+                  {name.split('/')[0]} / {name.split('/')[1]} {deprecated ? ' (Deprecated)' : null}
+                </span>
+              </Option>
+            ))}
         </OptGroup>
-      )}
-      <OptGroup label="Markets">
-        {markets
-          .sort((a, b) =>
-            extractQuote(a.name) === 'USDT' && extractQuote(b.name) !== 'USDT'
-              ? -1
-              : extractQuote(a.name) !== 'USDT' &&
-                extractQuote(b.name) === 'USDT'
-              ? 1
-              : 0,
-          )
-          .sort((a, b) =>
-            extractBase(a.name) < extractBase(b.name)
-              ? -1
-              : extractBase(a.name) > extractBase(b.name)
-              ? 1
-              : 0,
-          )
-          .map(({ address, name, deprecated }, i) => (
-            <Option
-              value={address.toBase58()}
-              key={nanoid()}
-              name={name}
-              style={{
-                padding: '10px',
-                // @ts-ignore
-                backgroundColor: i % 2 === 0 ? 'rgb(39, 44, 61)' : null,
-              }}
-            >
-              {name} {deprecated ? ' (Deprecated)' : null}
-            </Option>
-          ))}
-      </OptGroup>
-    </Select>
+      </Select>
+    </div>
   );
 }
 
@@ -341,23 +345,18 @@ const RenderNormal = ({ onChangeOrderRef, onPrice, onSize }) => {
         flexWrap: 'nowrap',
       }}
     >
-      <Col flex="auto" style={{ height: '50vh' }}>
-        <Row style={{ height: '100%' }}>
+      <Col flex="auto" style={{ display: 'flex', flexDirection: 'column' }}>
+        <FloatingElement style={{ flex: 1, minHeight: '600px', padding: 0, overflow: 'hidden' }}>
           <TVChartContainer />
-        </Row>
-        <Row style={{ height: '70%' }}>
-          <UserInfoTable />
-        </Row>
+        </FloatingElement>
+        <UserInfoTable />
       </Col>
-      <Col flex={'360px'} style={{ height: '100%' }}>
+      <Col flex={'400px'} style={{ display: 'flex', flexDirection: 'column' }}>
         <Orderbook smallScreen={false} onPrice={onPrice} onSize={onSize} />
         <TradesTable smallScreen={false} />
       </Col>
-      <Col
-        flex="400px"
-        style={{ height: '100%', display: 'flex', flexDirection: 'column' }}
-      >
-        <TradeForm setChangeOrderRef={onChangeOrderRef} />
+      <Col flex="270px" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+        <TradeForm setChangeOrderRef={onChangeOrderRef} style={{ minHeight: 300 }} />
         <StandaloneBalancesDisplay />
       </Col>
     </Row>
@@ -367,31 +366,34 @@ const RenderNormal = ({ onChangeOrderRef, onPrice, onSize }) => {
 const RenderSmall = ({ onChangeOrderRef, onPrice, onSize }) => {
   return (
     <>
-      <Row style={{ height: '30vh' }}>
-        <TVChartContainer />
-      </Row>
-      <Row
-        style={{
-          height: '900px',
-        }}
-      >
-        <Col flex="auto" style={{ height: '100%', display: 'flex' }}>
-          <Orderbook
-            smallScreen={true}
-            depth={13}
-            onPrice={onPrice}
-            onSize={onSize}
-          />
+      <Row>
+        <Col flex="2" style={{ display: 'flex', flexDirection: 'column' }}>
+          <FloatingElement style={{ flex: 2, minHeight: '150px', padding: 0, overflow: 'hidden' }}>
+            <TVChartContainer />
+          </FloatingElement>
         </Col>
-        <Col flex="auto" style={{ height: '100%', display: 'flex' }}>
-          <TradesTable smallScreen={true} />
+        <Col flex="1">
+          <StandaloneBalancesDisplay />
+        </Col>
+      </Row>
+      <Row>
+        {/* style={{
+          height: '950px',
+        }} */}
+        <Col flex="1" style={{ maxHeight: '450px', display: 'flex' }}>
+          <Orderbook smallScreen={true} onPrice={onPrice} onSize={onSize} />
         </Col>
         <Col
-          flex="400px"
-          style={{ height: '100%', display: 'flex', flexDirection: 'column' }}
+          flex="1"
+          style={{
+            height: '450px',
+            display: 'flex',
+          }}
         >
           <TradeForm setChangeOrderRef={onChangeOrderRef} />
-          <StandaloneBalancesDisplay />
+        </Col>
+        <Col flex="1" style={{ maxHeight: '450px', display: 'flex' }}>
+          <TradesTable smallScreen={true} />
         </Col>
       </Row>
       <Row>
@@ -406,31 +408,31 @@ const RenderSmall = ({ onChangeOrderRef, onPrice, onSize }) => {
 const RenderSmaller = ({ onChangeOrderRef, onPrice, onSize }) => {
   return (
     <>
-      <Row style={{ height: '50vh' }}>
-        <TVChartContainer />
-      </Row>
       <Row>
-        <Col xs={24} sm={12} style={{ height: '100%', display: 'flex' }}>
+        <Col flex="auto" style={{ display: 'flex', flexDirection: 'column' }}>
+          <FloatingElement style={{ flex: "1", minHeight: '600px', padding: 0, overflow: 'hidden' }}>
+            <TVChartContainer />
+          </FloatingElement>
+        </Col>
+      </Row>.
+      <Row>
+        <Col xs={24} sm={12} style={{ height: '50%', display: 'flex' }}>
           <TradeForm style={{ flex: 1 }} setChangeOrderRef={onChangeOrderRef} />
         </Col>
         <Col xs={24} sm={12}>
           <StandaloneBalancesDisplay />
         </Col>
       </Row>
-      <Row
-        style={{
-          height: '500px',
-        }}
-      >
+      <Row>
         <Col xs={24} sm={12} style={{ height: '100%', display: 'flex' }}>
-          <Orderbook smallScreen={true} onPrice={onPrice} onSize={onSize} />
+          <Orderbook smallScreen={false} onPrice={onPrice} onSize={onSize} />
         </Col>
-        <Col xs={24} sm={12} style={{ height: '100%', display: 'flex' }}>
+        <Col xs={24} sm={12} style={{ height: '50%', display: 'flex', maxHeight: '500px' }}>
           <TradesTable smallScreen={true} />
         </Col>
       </Row>
       <Row>
-        <Col flex="auto">
+        <Col flex="auto" style={{ height: '100%', display: 'flex' }}>
           <UserInfoTable />
         </Col>
       </Row>

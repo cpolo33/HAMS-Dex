@@ -1,5 +1,5 @@
-import { Col, Row } from 'antd';
-import React from 'react';
+import { Col, Row, Divider } from 'antd';
+import React, { useState } from 'react';
 import styled from 'styled-components';
 import { useMarket, useBonfidaTrades } from '../utils/markets';
 import { getDecimalCount } from '../utils/utils';
@@ -11,26 +11,32 @@ const Title = styled.div`
 `;
 const SizeTitle = styled(Row)`
   padding: 20px 0 14px;
-  color: #434a59;
+  color: #676767;
 `;
 
 export default function PublicTrades({ smallScreen }) {
   const { baseCurrency, quoteCurrency, market } = useMarket();
   const [trades, loaded] = useBonfidaTrades();
+  const [height, setHeight] = useState(400);
 
   return (
     <FloatingElement
+      setHeight={setHeight}
       style={
         smallScreen
-          ? { flex: 1 }
+          ? {
+            flex: 1, overflow: 'hidden'
+          }
           : {
-              marginTop: '10px',
-              minHeight: '270px',
-              maxHeight: 'calc(100vh - 700px)',
-            }
+            marginTop: '10px',
+            flex: 1,
+            overflow: 'hidden'
+          }
       }
     >
-      <Title>Recent Market trades</Title>
+      <Divider>
+        <Title>Recent Trades</Title>
+      </Divider>
       <SizeTitle>
         <Col span={8}>Price ({quoteCurrency}) </Col>
         <Col span={8} style={{ textAlign: 'right' }}>
@@ -46,9 +52,7 @@ export default function PublicTrades({ smallScreen }) {
             marginRight: '-20px',
             paddingRight: '5px',
             overflowY: 'scroll',
-            maxHeight: smallScreen
-              ? 'calc(100% - 75px)'
-              : 'calc(100vh - 800px)',
+            maxHeight: height - 115,
           }}
         >
           {trades.map((trade: BonfidaTrade, i: number) => (
@@ -56,23 +60,23 @@ export default function PublicTrades({ smallScreen }) {
               <Col
                 span={8}
                 style={{
-                  color: trade.side === 'buy' ? '#41C77A' : '#F23B69',
+                  color: trade.side === 'buy' ? '#0AD171' : '#FD499D',
                 }}
               >
                 {market?.tickSize && !isNaN(trade.price)
                   ? Number(trade.price).toFixed(
-                      getDecimalCount(market.tickSize),
-                    )
+                    getDecimalCount(market.tickSize),
+                  )
                   : trade.price}
               </Col>
               <Col span={8} style={{ textAlign: 'right' }}>
                 {market?.minOrderSize && !isNaN(trade.size)
                   ? Number(trade.size).toFixed(
-                      getDecimalCount(market.minOrderSize),
-                    )
+                    getDecimalCount(market.minOrderSize),
+                  )
                   : trade.size}
               </Col>
-              <Col span={8} style={{ textAlign: 'right', color: '#434a59' }}>
+              <Col span={8} style={{ textAlign: 'right', color: '#676767' }}>
                 {trade.time && new Date(trade.time).toLocaleTimeString()}
               </Col>
             </Row>

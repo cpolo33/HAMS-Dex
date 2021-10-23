@@ -145,5 +145,5 @@ export const TVChartContainer = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [market, tvWidgetRef.current]);
 
-  return <div id={defaultProps.containerId} className={'TVChartContainer'} />;
+  return <div id={defaultProps.containerId} className="tradingview-chart" />;
 };
