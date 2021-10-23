@@ -1,14 +1,11 @@
 import {
   PlusCircleOutlined,
-  SettingOutlined,
 } from '@ant-design/icons';
-import { Button, Col, Menu, Popover, Row, Select } from 'antd';
+import { Col, Menu, Row } from 'antd';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useHistory, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
-import { useWallet } from '../utils/wallet';
 import { ENDPOINTS, useConnectionConfig } from '../utils/connection';
-import Settings from './Settings';
 import CustomClusterEndpointDialog from './CustomClusterEndpointDialog';
 import { EndpointInfo } from '../utils/types';
 import { notify } from '../utils/notifications';
@@ -25,14 +22,16 @@ const Wrapper = styled.div`
   padding: 0px 30px;
   flex-wrap: wrap;
 `;
+
 const LogoWrapper = styled.div`
   display: flex;
   align-items: center;
+  color: #ffffff;
+  font-weight: bold;
   cursor: pointer;
   img {
-    height: 34px;
-    margin-right: 8px;
-    margin-top: 4px;
+    height: 40px;
+    margin-right: 5px;
   }
 `;
 
@@ -44,13 +43,12 @@ const EXTERNAL_LINKS = {
   '/developer-resources': 'https://serum-academy.com/en/developer-resources/',
   '/explorer': 'https://explorer.solana.com',
   '/srm-faq': 'https://projectserum.com/srm-faq',
-  '/swap': 'https://swap.projectserum.com',
-  'https://solapeswap.io/#/market/4zffJaPyeXZ2wr4whHgP39QyTfurqZ2BEd4M5W6SEuon': 'https://solapeswap.io/#/market/4zffJaPyeXZ2wr4whHgP39QyTfurqZ2BEd4M5W6SEuon',
-  'https://apexlev.solapeswap.io/': 'https://apexlev.solapeswap.io/',
+  'https://hams.holaplex.com/#/': 'https://hams.holaplex.com/#/',
+  'https://digitaleyes.market/collections/Space%20Hamster': 'https://digitaleyes.market/collections/Space%20Hamster',
+  'https://app.step.finance/#/dashboard': 'https://app.step.finance/#/dashboard',
 };
 
 export default function TopBar() {
-  const { connected, wallet } = useWallet();
   const {
     endpoint,
     endpointInfo,
@@ -62,7 +60,6 @@ export default function TopBar() {
   const [testingConnection, setTestingConnection] = useState(false);
   const location = useLocation();
   const history = useHistory();
-  const [searchFocussed, setSearchFocussed] = useState(false);
 
   const handleClick = useCallback(
     (e) => {
@@ -139,193 +136,84 @@ export default function TopBar() {
         onClose={() => setAddEndpointVisible(false)}
       />
       <Wrapper>
-        <LogoWrapper onClick={() => history.push(tradePageUrl)}>
-          <img src="/solape.svg" alt="" />
-        </LogoWrapper>
-        <Menu
-          mode="horizontal"
-          onClick={handleClick}
-          selectedKeys={[location.pathname]}
-          style={{
-            borderBottom: 'none',
-            backgroundColor: 'transparent',
-            display: 'flex',
-            alignItems: 'flex-end',
-            flex: 1,
-          }}
-        >
-          <Menu.Item key={tradePageUrl} style={{ margin: '0 0 0 20px' }}>
-            Trade
-          </Menu.Item>
-          <Menu.Item key="https://apexlev.solapeswap.io/" style={{ margin: '0', color: '#FFE6CC', fontWeight: 'normal' }}>
-            <a href="https://apexlev.solapeswap.io/">Leverage</a>
-          </Menu.Item>
-          <Menu.Item key="https://solapeswap.io/#/market/4zffJaPyeXZ2wr4whHgP39QyTfurqZ2BEd4M5W6SEuon" style={{ margin: '0', color: '#FFE6CC', fontWeight: 'normal' }}>
-            <a href="https://solapeswap.io/#/market/4zffJaPyeXZ2wr4whHgP39QyTfurqZ2BEd4M5W6SEuon">Buy SOLAPE</a>
-          </Menu.Item>
-          {!searchFocussed && (
-            <Menu.Item key="/swap" style={{ margin: '0 10px' }}>
-              <a
-                href={EXTERNAL_LINKS['/swap']}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-
-              </a>
+        <div style={{ display: 'contents' }}>
+          <LogoWrapper onClick={() => history.push(tradePageUrl)}>
+            <img src={'https://i.ibb.co/K79sfcc/logo.png'} alt="" />
+            {'HAMS'}
+          </LogoWrapper>
+          <Menu
+            mode="horizontal"
+            onClick={handleClick}
+            selectedKeys={[location.pathname]}
+            style={{
+              borderBottom: 'none',
+              backgroundColor: 'transparent',
+              alignItems: 'flex-end',
+              flex: 1,
+            }}
+          >
+            <Menu.Item key={tradePageUrl} style={{ margin: '0 0 0 20px' }}>
+              TRADE
             </Menu.Item>
-          )}
-          {connected && (!searchFocussed || location.pathname === '/balances') && (
-            <Menu.Item key="/balances" style={{ margin: '0 10px' }}>
+            <Menu.Item key="5j6hdwx4eW3QBYZtRjKiUj7aDA1dxDpveSHBznwq7kUv" style={{ margin: '0 0 0 20px', color: '#2abdd2', fontWeight: 'normal' }}>
+              <a href={EXTERNAL_LINKS['5j6hdwx4eW3QBYZtRjKiUj7aDA1dxDpveSHBznwq7kUv']}>Buy HAMS</a>
             </Menu.Item>
-          )}
-          {connected && (!searchFocussed || location.pathname === '/orders') && (
-            <Menu.Item key="/orders" style={{ margin: '0 10px' }}>
-
-            </Menu.Item>
-          )}
-          {connected && (!searchFocussed || location.pathname === '/convert') && (
-            <Menu.Item key="/convert" style={{ margin: '0 10px' }}>
-
-            </Menu.Item>
-          )}
-          {(!searchFocussed || location.pathname === '/list-new-market') && (
-            <Menu.Item key="/list-new-market" style={{ margin: '0 10px' }}>
-
-            </Menu.Item>
-          )}
-          {!searchFocussed && (
-            <Menu.SubMenu
-              title=""
-              onTitleClick={() =>
-                window.open(EXTERNAL_LINKS['/learn'], '_blank')
-              }
-              style={{ margin: '0 0px 0 10px' }}
-            >
-              <Menu.Item key="/add-market">
-                <a
-                  href={EXTERNAL_LINKS['/add-market']}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Adding a market
-                </a>
+            <Menu.SubMenu title="NFT" style={{ margin: '0 0 0 20px', color: '#ffffff', fontWeight: 'normal' }}>
+              <Menu.Item key="https://hams.holaplex.com/#/">
+                <a href="https://hams.holaplex.com/#/" target="_blank" rel="noopener noreferrer">Holaplex</a>
               </Menu.Item>
-              <Menu.Item key="/wallet-support">
-                <a
-                  href={EXTERNAL_LINKS['/wallet-support']}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Supported wallets
-                </a>
-              </Menu.Item>
-              <Menu.Item key="/dex-list">
-                <a
-                  href={EXTERNAL_LINKS['/dex-list']}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  DEX list
-                </a>
-              </Menu.Item>
-              <Menu.Item key="/developer-resources">
-                <a
-                  href={EXTERNAL_LINKS['/developer-resources']}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Developer resources
-                </a>
-              </Menu.Item>
-              <Menu.Item key="/explorer">
-                <a
-                  href={EXTERNAL_LINKS['/explorer']}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Solana block explorer
-                </a>
-              </Menu.Item>
-              <Menu.Item key="/srm-faq">
-                <a
-                  href={EXTERNAL_LINKS['/srm-faq']}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  SRM FAQ
-                </a>
+              <Menu.Item key="https://digitaleyes.market/collections/Space%20Hamster">
+                <a href="https://digitaleyes.market/collections/Space%20Hamster" target="_blank" rel="noopener noreferrer">DigitalEyes</a>
               </Menu.Item>
             </Menu.SubMenu>
-          )}
-        </Menu>
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            paddingRight: 5,
-          }}
-        >
-          <AppSearch
-            onFocus={() => setSearchFocussed(true)}
-            onBlur={() => setSearchFocussed(false)}
-            focussed={searchFocussed}
-            width={searchFocussed ? '350px' : '35px'}
-          />
-        </div>
-        <div>
-          <Row
-            align="middle"
-            style={{ paddingLeft: 12, paddingRight: 5 }}
-            gutter={16}
-          >
-            <Col>
-              <PlusCircleOutlined
-                style={{ color: '#fff' }}
-                onClick={() => setAddEndpointVisible(true)}
-              />
-            </Col>
-            {/*
-            <Col>
-              <Popover
-                content={endpoint}
-                placement="bottomRight"
-                title="URL"
-                trigger="hover"
-              >
-                <InfoCircleOutlined style={{ color: '#2abdd2' }} />
-              </Popover>
-            </Col>
-            <Col>
-              <Select
-                onSelect={setEndpoint}
-                value={endpoint}
-                style={{ marginRight: 8, width: '150px' }}
-              >
-                {availableEndpoints.map(({ name, endpoint }) => (
-                  <Select.Option value={endpoint} key={endpoint}>
-                    {name}
-                  </Select.Option>
-                ))}
-              </Select>
-            </Col>
+            <Menu.Item key="https://app.step.finance/#/dashboard" style={{ margin: '0 0 0 20px', color: '#2abdd2', fontWeight: 'normal' }}>
+              <a href="https://app.step.finance/#/dashboard" target="_blank" rel="noopener noreferrer">DASHBOARD</a>
+            </Menu.Item>
+            {/* <Menu.Item key={'/swap'} style={{ margin: '0 0 0 20px', color: '#2abdd2', fontWeight: 'normal' }}>
+                SWAP
+              </Menu.Item>
             */}
-          </Row>
-        </div>
-        {connected && (
+          </Menu>
           <div>
-            <Popover
-              content={<Settings autoApprove={wallet?.autoApprove} />}
-              placement="bottomRight"
-              title="Settings"
-              trigger="click"
+            <Row
+              align="middle"
+              style={{ paddingLeft: 12, paddingRight: 5 }}
+              gutter={16}
             >
-              <Button style={{ marginRight: 8, marginLeft: 10 }}>
-                <SettingOutlined />
-                Settings
-              </Button>
-            </Popover>
+              <Col>
+                <PlusCircleOutlined
+                  style={{ color: '#2abdd2' }}
+                  onClick={() => setAddEndpointVisible(true)}
+                />
+              </Col>
+              {/*
+              <Col>
+                <Popover
+                  content={endpoint}
+                  placement="bottomRight"
+                  title="URL"
+                  trigger="hover"
+                >
+                  <InfoCircleOutlined style={{ color: '#2abdd2' }} />
+                </Popover>
+              </Col>
+              <Col>
+                <Select
+                  onSelect={setEndpoint}
+                  value={endpoint}
+                  style={{ marginRight: 8, width: '150px' }}
+                >
+                  {availableEndpoints.map(({ name, endpoint }) => (
+                    <Select.Option value={endpoint} key={endpoint}>
+                      {name}
+                    </Select.Option>
+                  ))}
+                </Select>
+              </Col>
+              */}
+            </Row>
           </div>
-        )}
+        </div>
         <div>
           <WalletConnect />
         </div>
