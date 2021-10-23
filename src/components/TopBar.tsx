@@ -11,7 +11,6 @@ import { EndpointInfo } from '../utils/types';
 import { notify } from '../utils/notifications';
 import { Connection } from '@solana/web3.js';
 import WalletConnect from './WalletConnect';
-import AppSearch from './AppSearch';
 import { getTradePageUrl } from '../utils/markets';
 
 const Wrapper = styled.div`
@@ -50,7 +49,6 @@ const EXTERNAL_LINKS = {
 
 export default function TopBar() {
   const {
-    endpoint,
     endpointInfo,
     setEndpoint,
     availableEndpoints,

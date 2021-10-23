@@ -11,7 +11,7 @@ const Title = styled.div`
 `;
 const SizeTitle = styled(Row)`
   padding: 20px 0 14px;
-  color: #676767;
+  color: #ffffff;
 `;
 
 export default function PublicTrades({ smallScreen }) {

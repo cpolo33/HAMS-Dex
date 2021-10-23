@@ -24,7 +24,7 @@ export const CustomFooter = () => {
       alignItems: 'center',
     }} >
       <Row
-        gutter={[16, 20]}
+        gutter={[16, 3]}
         style={{
           alignItems: 'center',
           placeContent: 'center',

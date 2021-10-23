@@ -4,7 +4,7 @@ import styled from 'styled-components';
 const Wrapper = styled.div`
   margin: 8px;
   padding: 16px 20px;
-  background: #121616;
+  background: #212936;
   border-radius: 8px;
 `;
 

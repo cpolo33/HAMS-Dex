@@ -81,7 +81,6 @@ export const TVChartContainer = () => {
       container_id: defaultProps.containerId as ChartingLibraryWidgetOptions['container_id'],
       library_path: defaultProps.libraryPath as string,
       auto_save_delay: 5,
-
       locale: 'en',
       disabled_features: ['use_localstorage_for_settings'],
       enabled_features: ['study_templates'],
@@ -94,12 +93,13 @@ export const TVChartContainer = () => {
       theme: defaultProps.theme === 'Dark' ? 'Dark' : 'Light',
       overrides: {
         ...savedProperties,
-        'mainSeriesProperties.candleStyle.upColor': '#41C77A',
-        'mainSeriesProperties.candleStyle.downColor': '#F23B69',
-        'mainSeriesProperties.candleStyle.borderUpColor': '#41C77A',
-        'mainSeriesProperties.candleStyle.borderDownColor': '#F23B69',
-        'mainSeriesProperties.candleStyle.wickUpColor': '#41C77A',
-        'mainSeriesProperties.candleStyle.wickDownColor': '#F23B69',
+        "mainSeriesProperties.style": 3,
+        "mainSeriesProperties.areaStyle.color1": "rgba(33, 150, 243, 0.28)",
+        "mainSeriesProperties.areaStyle.color2": "#006064",
+        "mainSeriesProperties.areaStyle.linecolor": "#006064",
+        "mainSeriesProperties.areaStyle.linestyle": 0,
+        "mainSeriesProperties.areaStyle.linewidth": 2,
+        "mainSeriesProperties.areaStyle.priceSource": "close",
       },
       // @ts-ignore
       save_load_adapter: saveLoadAdapter,

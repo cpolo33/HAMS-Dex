@@ -14,7 +14,7 @@ const Title = styled.div`
 
 const SizeTitle = styled(Row)`
   padding: 4px 0 4px 0px;
-  color: #676767;
+  color: #ffffff;
 `;
 
 const MarkPriceTitle = styled(Row)`

@@ -24,16 +24,16 @@ import tuple from 'immutable-tuple';
 
 const SellButton = styled(Button)`
   margin: 20px 0px 0px 0px;
-  background: #FF810A;
-  border-color: #FF810A;
+  background: #f23b69;
+  border-color: #f23b69;
   border-radius: 4px;
   font-weight: bold;
 `;
 
 const BuyButton = styled(Button)`
   margin: 20px 0px 0px 0px;
-  background: #FF810A;
-  border-color: #FF810A;
+  background: #02bf76;
+  border-color: #02bf76;
   border-radius: 4px;
   font-weight: bold;
 `;
@@ -294,13 +294,13 @@ export default function TradeForm({
             style={{
               width: '50%',
               textAlign: 'center',
-              color: side === 'buy' ? '#FF810A' : '#676767',
+              color: side === 'buy' ? '#02bf76' : '#02bf76',
               background: 'none',
               border: 'none',
-              borderBottom: side === 'buy' ? '2px solid #FF810A' : 'none',
+              borderBottom: side === 'buy' ? '2px solid #02bf76' : 'none',
             }}
           >
-            Buy
+            BUY
           </Radio.Button>
           <Radio.Button
             value="sell"
@@ -309,11 +309,11 @@ export default function TradeForm({
               textAlign: 'center',
               background: 'none',
               border: 'none',
-              color: side === 'sell' ? '#FF810A' : '#676767',
-              borderBottom: side === 'sell' ? '2px solid #FF810A' : 'none',
+              color: side === 'sell' ? '#F23B69' : '#F23B69',
+              borderBottom: side === 'sell' ? '2px solid #F23B69' : 'none',
             }}
           >
-            Sell
+            SELL
           </Radio.Button>
         </Radio.Group>
         <Input

@@ -35,7 +35,7 @@ const Tip = styled.p`
 `;
 
 const ActionButton = styled(Button)`
-  color: #FF810A;
+  color: #2abdd2;
   background-color: #2E3838;
   border-width: 0px;
   border-radius: 4px;
@@ -200,7 +200,7 @@ export default function StandaloneBalancesDisplay() {
                   title="Token mint"
                   trigger="hover"
                 >
-                  <InfoCircleOutlined style={{ color: '#FF810A' }} />
+                  <InfoCircleOutlined style={{ color: '#2abdd2' }} />
                 </Popover>
               )}
             </Divider>

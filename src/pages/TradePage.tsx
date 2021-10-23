@@ -12,7 +12,6 @@ import {
   useMarket,
   useMarketsList,
   useUnmigratedDeprecatedMarkets,
-  useMarkPrice,
 } from '../utils/markets';
 import TradeForm from '../components/TradeForm';
 import TradesTable from '../components/TradesTable';
@@ -82,7 +81,7 @@ function TradePageInner() {
   });
 
   useEffect(() => {
-    document.title = marketName ? `${marketName} — Serum` : 'Serum';
+    document.title = marketName ? `${marketName} — HAMS Dex` : 'Space Hamster';
   }, [marketName]);
 
   const changeOrderRef = useRef<
@@ -232,11 +231,9 @@ function MarketSelector({
   const selectedMarket = getMarketInfos(customMarkets)
     .find(
       (proposedMarket) =>
-        market?.address && proposedMarket.address.equals(market.address),
+        market?.address && proposedMarket.address.equals(market.address)
     )
     ?.address?.toBase58();
-
-  const marketName = markets.find(m => m.address == selectedMarket)?.name
 
   return (
     <div style={{ position: 'relative' }}>
@@ -309,7 +306,7 @@ function MarketSelector({
                 style={{
                   padding: '10px',
                   // @ts-ignore
-                  backgroundColor: i % 2 === 0 ? '#1C2222' : '#121616',
+                  backgroundColor: i % 2 === 0 ? 'rgb(39, 44, 61)' : null,
                 }}
               >
                 <span>
@@ -414,7 +411,7 @@ const RenderSmaller = ({ onChangeOrderRef, onPrice, onSize }) => {
             <TVChartContainer />
           </FloatingElement>
         </Col>
-      </Row>.
+      </Row>
       <Row>
         <Col xs={24} sm={12} style={{ height: '50%', display: 'flex' }}>
           <TradeForm style={{ flex: 1 }} setChangeOrderRef={onChangeOrderRef} />
