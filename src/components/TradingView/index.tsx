@@ -68,7 +68,7 @@ export const TVChartContainer = () => {
       symbol:
         USE_MARKETS.find(
           (m) => m.address.toBase58() === market?.publicKey.toBase58(),
-        )?.name || 'SRM/USDC',
+        )?.name || 'HAMS/USDC',
       // BEWARE: no trailing slash is expected in feed URL
       // tslint:disable-next-line:no-any
       // @ts-ignore
@@ -80,7 +80,6 @@ export const TVChartContainer = () => {
       interval: defaultProps.interval as ChartingLibraryWidgetOptions['interval'],
       container_id: defaultProps.containerId as ChartingLibraryWidgetOptions['container_id'],
       library_path: defaultProps.libraryPath as string,
-      auto_save_delay: 5,
       locale: 'en',
       disabled_features: ['use_localstorage_for_settings'],
       enabled_features: ['study_templates'],
@@ -145,5 +144,5 @@ export const TVChartContainer = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [market, tvWidgetRef.current]);
 
-  return <div id={defaultProps.containerId} className="tradingview-chart" />;
+  return <div id={defaultProps.containerId} className={'TVChartContainer'} />;
 };
