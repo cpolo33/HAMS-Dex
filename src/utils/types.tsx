@@ -139,3 +139,27 @@ export interface BonfidaTrade {
   feeCost: number;
   marketAddress: string;
 }
+
+export interface BonfidaVolume {
+  volumeUsd: number;
+  volume: number;
+}
+
+export interface DexLabVolume {
+  address: string;
+  programId: string;
+  price: number;
+  summary: {
+    totalVolume: number;
+    sellVolume: number;
+    buyVolume: number;
+    highPrice: string;
+    lowPrice: string;
+  }
+  last24hOrder: {
+    exist: boolean;
+    time: string;
+    price: string;
+    percent: number;
+  }
+}

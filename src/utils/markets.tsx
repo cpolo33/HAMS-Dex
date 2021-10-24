@@ -11,6 +11,8 @@ import BN from 'bn.js';
 import {getTokenAccountInfo, parseTokenAccountData, useMintInfos,} from './tokens';
 import {
   Balances,
+  BonfidaVolume,
+  DexLabVolume,
   CustomMarketInfo,
   DeprecatedOpenOrdersBalances,
   FullMarketInfo,
@@ -23,6 +25,7 @@ import {
 import {WRAPPED_SOL_MINT} from '@project-serum/serum/lib/token-instructions';
 import {Order} from '@project-serum/serum/lib/market';
 import BonfidaApi from './bonfidaConnector';
+import DexLabApi from './dexLabConnector';
 
 // Used in debugging, should be false in production
 const _IGNORE_DEPRECATED = false;
@@ -158,8 +161,10 @@ const _SLOW_REFRESH_INTERVAL = 5 * 1000;
 // For things that change frequently
 const _FAST_REFRESH_INTERVAL = 1000;
 
+const HAMS_TOKEN = 'HAMS';
+
 export const DEFAULT_MARKET = USE_MARKETS.find(
-  ({ name, deprecated }) => name === 'HAMS/USDC' && !deprecated,
+  ({ name, deprecated }) => name === `${HAMS_TOKEN}/USDC` && !deprecated,
 );
 
 export function getMarketDetails(
@@ -351,19 +356,84 @@ export function _useUnfilteredTrades(limit = 10000) {
 }
 
 export function useBonfidaTrades() {
-  const { market } = useMarket();
+  const { market, baseCurrency, quoteCurrency } = useMarket();
   const marketAddress = market?.address.toBase58();
+  const marketName = baseCurrency! + quoteCurrency!;
+  let isHams = baseCurrency == HAMS_TOKEN || quoteCurrency == HAMS_TOKEN;
 
-  async function getBonfidaTrades() {
-    if (!marketAddress) {
+  switch (baseCurrency) {
+    case 'HAMS':
+    case 'BOP':
+    case 'FTR':
+    case 'LIKE':
+    case 'LIQ':
+      isHams = true;
+      break;
+    default:
+      isHams = false;
+      break;
+  }
+
+  // console.log(quoteCurrency)
+
+  const params = isHams ? marketAddress : marketName;
+
+  async function getRecentHamsTrades() {
+    if (!params) {
       return null;
     }
-    return await BonfidaApi.getRecentTrades(marketAddress);
+    return await BonfidaApi.getRecentHamsTrades(params);
+  }
+
+  async function getBonfidaTrades() {
+    if (!params) {
+      return null;
+    }
+    return await BonfidaApi.getRecentTrades(params);
   }
 
   return useAsyncData(
-    getBonfidaTrades,
-    tuple('getBonfidaTrades', marketAddress),
+    isHams ? getRecentHamsTrades : getBonfidaTrades,
+    tuple('getBonfidaTrades', params),
+    { refreshInterval: _SLOW_REFRESH_INTERVAL },
+    false,
+  );
+}
+
+export function useVolumes() {
+  const { market, baseCurrency, quoteCurrency } = useMarket();
+  const marketAddress = market?.address.toBase58();
+  const marketName = baseCurrency! + quoteCurrency!;
+  const isHams = baseCurrency == HAMS_TOKEN || quoteCurrency == HAMS_TOKEN;
+
+  const params = isHams ? marketAddress : marketName;
+
+  async function get24HourHamsVolumes() {
+    if (!params) {
+      return null;
+    }
+    return await DexLabApi.get24HourVolumes(params);
+  }
+
+  async function get24HourVolumes() {
+    if (!params) {
+      return null;
+    }
+
+    const result = await BonfidaApi.get24HourVolumes(params);
+    if (result && result.length > 0)
+      if (result[0].volume == 0 || result[0].volumeUsd == 0) {
+        if (marketAddress) {
+          return await DexLabApi.get24HourVolumes(marketAddress);
+        }
+      }
+
+    return result;
+  }
+
+  return useAsyncData<BonfidaVolume[] | DexLabVolume | null>(
+    isHams ? get24HourHamsVolumes : get24HourVolumes,
+    tuple('get24HourVolumes', params),
     { refreshInterval: _SLOW_REFRESH_INTERVAL },
     false,
   );

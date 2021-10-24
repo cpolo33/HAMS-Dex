@@ -104,7 +104,7 @@ export function useLocalStorageStringState(
       } else {
         localStorage.setItem(key, newState);
       }
-      localStorageListeners[key]?.forEach((listener) =>
+      localStorageListeners[key].forEach((listener) =>
         listener(key + '\n' + newState),
       );
     },
@@ -161,6 +161,10 @@ export function isEqual(obj1, obj2, keys) {
     }
   }
   return true;
+}
+
+export function isNullOrUndefined(value: any) {
+  return value == undefined || value == null;
 }
 
 export function flatten(obj, { prefix = '', restrictTo }) {

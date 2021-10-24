@@ -1,6 +1,7 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Button, Col, Popover, Row, Select, Typography } from 'antd';
 import styled from 'styled-components';
+import moment from 'moment';
 import Orderbook from '../components/Orderbook';
 import UserInfoTable from '../components/UserInfoTable';
 import StandaloneBalancesDisplay from '../components/StandaloneBalancesDisplay';
@@ -12,6 +13,9 @@ import {
   useMarket,
   useMarketsList,
   useUnmigratedDeprecatedMarkets,
+  useMarkPrice,
+  useBonfidaTrades,
+  useVolumes,
 } from '../utils/markets';
 import TradeForm from '../components/TradeForm';
 import TradesTable from '../components/TradesTable';
@@ -26,9 +30,8 @@ import CustomMarketDialog from '../components/CustomMarketDialog';
 import { notify } from '../utils/notifications';
 import { useHistory, useParams } from 'react-router-dom';
 import { nanoid } from 'nanoid';
-
 import { TVChartContainer } from '../components/TradingView';
-
+import { isNullOrUndefined } from '../utils/utils';
 const { Option, OptGroup } = Select;
 
 const Wrapper = styled.div`
@@ -70,6 +73,7 @@ function TradePageInner() {
     customMarkets,
     setCustomMarkets,
     setMarketAddress,
+    quoteCurrency,
   } = useMarket();
   const markets = useMarketsList();
   const [handleDeprecated, setHandleDeprecated] = useState(false);
@@ -79,6 +83,9 @@ function TradePageInner() {
     height: window.innerHeight,
     width: window.innerWidth,
   });
+  const markPrice = useMarkPrice();
+  const [trades, tradesLoaded] = useBonfidaTrades();
+  const [volumes, volumeLoaded] = useVolumes();
 
   useEffect(() => {
     document.title = marketName ? `${marketName} — HAMS Dex` : 'Space Hamster';
@@ -112,6 +119,34 @@ function TradePageInner() {
       [],
     ),
   };
+
+  const dayPercentChange = useMemo(() => {
+    if (!tradesLoaded || !trades || trades.length == 0 || !markPrice) return;
+
+    const compareTime = moment().subtract(1, 'days').unix();
+    let minAbs = Number.MAX_SAFE_INTEGER;
+    let minIndex = -1;
+    for (const [index, trade] of trades.entries()) {
+      const timeDiff = Math.abs(trade.time - compareTime);
+      if (minAbs > timeDiff) {
+        minAbs = timeDiff;
+        minIndex = index;
+      }
+    }
+
+    const yesterdayValue = trades[minIndex].price;
+    const change = Number(markPrice! - yesterdayValue);
+    const percentChange = (change * 100) / yesterdayValue;
+    return percentChange;
+  }, [tradesLoaded, trades, markPrice]);
+
+  const volumeChange = useMemo(() => {
+    if (!volumeLoaded || !volumes) return;
+
+    if (Array.isArray(volumes)) return volumes[0].volumeUsd;
+    return volumes.summary.totalVolume;
+  }, [volumes, volumeLoaded]);
+
   const component = (() => {
     if (handleDeprecated) {
       return (
@@ -148,6 +183,27 @@ function TradePageInner() {
     const newCustomMarkets = customMarkets.filter((m) => m.address !== address);
     setCustomMarkets(newCustomMarkets);
   };
+
+  const getChangeColor = () => {
+    if (isNullOrUndefined(dayPercentChange)) return '#FFF';
+    return dayPercentChange! >= 0 ? '#0ee9a7' : '#ff4747';
+  };
+
+  const coinPrice = useMemo(() => {
+    if (markPrice) {
+      return markPrice > 1 ? markPrice.toFixed(3) : markPrice;
+    }
+  }, [markPrice]);
+
+  const Volume24Hr = useMemo(() => {
+    if (volumeChange == 0) return '-';
+
+    return !isNullOrUndefined(volumeChange)
+      ? volumeChange!.toLocaleString(undefined, {
+        maximumFractionDigits: 2,
+      })
+      : '-';
+  }, [volumeChange]);
 
   return (
     <>
@@ -188,6 +244,57 @@ function TradePageInner() {
               style={{ color: '#2abdd2' }}
               onClick={() => setAddMarketVisible(true)}
             />
+          </Col>
+          <Col>{<span style={{ fontSize: '22px' }}>${coinPrice}</span>}</Col>
+          <Col flex="auto">
+            <Row
+              align="middle"
+              style={{ paddingLeft: 5, paddingRight: 5 }}
+              gutter={16}
+            >
+              <Col>
+                <div>
+                  <div>
+                    <small style={{ color: '#ABABAB' }}>24hr Change</small>
+                  </div>
+                  <div>
+                    <small>
+                      <b
+                        style={{
+                          color: getChangeColor(),
+                        }}
+                      >
+                        {!isNullOrUndefined(dayPercentChange) ? (
+                          <span>
+                            {dayPercentChange! >= 0 ? '+' : ''}
+                            {dayPercentChange!.toFixed(2)}%
+                          </span>
+                        ) : (
+                            '-'
+                          )}
+                      </b>
+                    </small>
+                  </div>
+                </div>
+              </Col>
+
+              <Col>
+                {
+                  <div>
+                    <div>
+                      <small style={{ color: '#ABABAB' }}>
+                        24hr Volume ({quoteCurrency})
+                      </small>
+                    </div>
+                    <div>
+                      <small>
+                        <b>{Volume24Hr}</b>
+                      </small>
+                    </div>
+                  </div>
+                }
+              </Col>
+            </Row>
           </Col>
           {deprecatedMarkets && deprecatedMarkets.length > 0 && (
             <React.Fragment>
@@ -298,7 +405,7 @@ function MarketSelector({
                   ? 1
                   : 0,
             )
-            .map(({ address, name, deprecated }, i) => (
+            .map(({ address, name, deprecated, symbol1 }, i) => (
               <Option
                 value={address.toBase58()}
                 key={nanoid()}
