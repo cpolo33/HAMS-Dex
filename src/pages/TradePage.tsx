@@ -3,7 +3,7 @@ import React, {
   useEffect,
   useMemo,
   useRef,
-  useState,
+  useState
 } from 'react';
 import { Button, Col, Popover, Row, Select, Typography } from 'antd';
 import styled from 'styled-components';
@@ -38,6 +38,7 @@ import { useHistory, useParams } from 'react-router-dom';
 import { nanoid } from 'nanoid';
 import { TVChartContainer } from '../components/TradingView';
 import { isNullOrUndefined } from '../utils/utils';
+
 const { Option, OptGroup } = Select;
 
 const Wrapper = styled.div`
@@ -410,7 +411,7 @@ function MarketSelector({
               ? 1
               : 0,
           )
-          .map(({ address, name, deprecated, symbol1 }, i) => (
+          .map(({ address, name, deprecated }, i) => (
             <Option
               value={address.toBase58()}
               key={nanoid()}
