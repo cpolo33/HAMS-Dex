@@ -14,7 +14,10 @@ const SizeTitle = styled(Row)`
   color: #ffffff;
 `;
 
-export default function PublicTrades({ smallScreen }) {
+export default function PublicTrades({ 
+  smallScreen,
+  depth = 50,
+ }) {
   const { baseCurrency, quoteCurrency, market } = useMarket();
   const [trades, loaded] = useBonfidaTrades();
   const [height, setHeight] = useState(400);

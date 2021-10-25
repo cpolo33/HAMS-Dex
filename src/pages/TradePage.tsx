@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { Button, Col, Popover, Row, Select, Typography } from 'antd';
 import styled from 'styled-components';
 import moment from 'moment';
@@ -200,8 +206,8 @@ function TradePageInner() {
 
     return !isNullOrUndefined(volumeChange)
       ? volumeChange!.toLocaleString(undefined, {
-        maximumFractionDigits: 2,
-      })
+          maximumFractionDigits: 2,
+        })
       : '-';
   }, [volumeChange]);
 
@@ -215,7 +221,7 @@ function TradePageInner() {
       <Wrapper>
         <Row
           align="middle"
-          style={{ paddingLeft: 5, paddingRight: 5, marginBottom: 16 }}
+          style={{ paddingLeft: 5, paddingRight: 5 }}
           gutter={16}
         >
           <Col>
@@ -270,8 +276,8 @@ function TradePageInner() {
                             {dayPercentChange!.toFixed(2)}%
                           </span>
                         ) : (
-                            '-'
-                          )}
+                          '-'
+                        )}
                       </b>
                     </small>
                   </div>
@@ -338,92 +344,88 @@ function MarketSelector({
   const selectedMarket = getMarketInfos(customMarkets)
     .find(
       (proposedMarket) =>
-        market?.address && proposedMarket.address.equals(market.address)
+        market?.address && proposedMarket.address.equals(market.address),
     )
     ?.address?.toBase58();
 
   return (
-    <div style={{ position: 'relative' }}>
-      <Select
-        showSearch
-        size={'large'}
-        style={{ width: 200 }}
-        placeholder={placeholder || 'Select a market'}
-        optionFilterProp="name"
-        onSelect={onSetMarketAddress}
-        listHeight={400}
-        value={selectedMarket}
-        filterOption={(input, option) =>
-          option?.name?.toLowerCase().indexOf(input.toLowerCase()) >= 0
-        }
-      >
-        {customMarkets && customMarkets.length > 0 && (
-          <OptGroup label="Custom">
-            {customMarkets.map(({ address, name }, i) => (
-              <Option
-                value={address}
-                key={nanoid()}
-                name={name}
-                style={{
-                  padding: '10px',
-                  // @ts-ignore
-                  backgroundColor: i % 2 === 0 ? 'rgb(39, 44, 61)' : null,
-                }}
-              >
-                <Row>
-                  <Col flex="auto">{name}</Col>
-                  {selectedMarket !== address && (
-                    <Col>
-                      <DeleteOutlined
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          e.nativeEvent.stopImmediatePropagation();
-                          onDeleteCustomMarket && onDeleteCustomMarket(address);
-                        }}
-                      />
-                    </Col>
-                  )}
-                </Row>
-              </Option>
-            ))}
-          </OptGroup>
-        )}
-        <OptGroup label="Markets">
-          {markets
-            .sort((a, b) =>
-              extractQuote(a.name) === 'USDT' && extractQuote(b.name) !== 'USDT'
-                ? -1
-                : extractQuote(a.name) !== 'USDT' &&
-                  extractQuote(b.name) === 'USDT'
-                  ? 1
-                  : 0,
-            )
-            .sort((a, b) =>
-              extractBase(a.name) < extractBase(b.name)
-                ? -1
-                : extractBase(a.name) > extractBase(b.name)
-                  ? 1
-                  : 0,
-            )
-            .map(({ address, name, deprecated, symbol1 }, i) => (
-              <Option
-                value={address.toBase58()}
-                key={nanoid()}
-                name={name}
-                style={{
-                  padding: '10px',
-                  // @ts-ignore
-                  backgroundColor: i % 2 === 0 ? 'rgb(39, 44, 61)' : null,
-                }}
-              >
-                <span>
-                  {name.split('/')[0]} / {name.split('/')[1]} {deprecated ? ' (Deprecated)' : null}
-                </span>
-              </Option>
-            ))}
+    <Select
+      showSearch
+      size={'large'}
+      style={{ width: 200 }}
+      placeholder={placeholder || 'Select a market'}
+      optionFilterProp="name"
+      onSelect={onSetMarketAddress}
+      listHeight={400}
+      value={selectedMarket}
+      filterOption={(input, option) =>
+        option?.name?.toLowerCase().indexOf(input.toLowerCase()) >= 0
+      }
+    >
+      {customMarkets && customMarkets.length > 0 && (
+        <OptGroup label="Custom">
+          {customMarkets.map(({ address, name }, i) => (
+            <Option
+              value={address}
+              key={nanoid()}
+              name={name}
+              style={{
+                padding: '10px',
+                // @ts-ignore
+                backgroundColor: i % 2 === 0 ? 'rgb(39, 44, 61)' : null,
+              }}
+            >
+              <Row>
+                <Col flex="auto">{name}</Col>
+                {selectedMarket !== address && (
+                  <Col>
+                    <DeleteOutlined
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        e.nativeEvent.stopImmediatePropagation();
+                        onDeleteCustomMarket && onDeleteCustomMarket(address);
+                      }}
+                    />
+                  </Col>
+                )}
+              </Row>
+            </Option>
+          ))}
         </OptGroup>
-      </Select>
-    </div>
+      )}
+      <OptGroup label="Markets">
+        {markets
+          .sort((a, b) =>
+            extractQuote(a.name) === 'USDT' && extractQuote(b.name) !== 'USDT'
+              ? -1
+              : extractQuote(a.name) !== 'USDT' &&
+                extractQuote(b.name) === 'USDT'
+              ? 1
+              : 0,
+          )
+          .sort((a, b) =>
+            extractBase(a.name) < extractBase(b.name)
+              ? -1
+              : extractBase(a.name) > extractBase(b.name)
+              ? 1
+              : 0,
+          )
+          .map(({ address, name, deprecated, symbol1 }, i) => (
+            <Option
+              value={address.toBase58()}
+              key={nanoid()}
+              name={name}
+              style={{
+                padding: '10px',
+                // @ts-ignore
+                backgroundColor: i % 2 === 0 ? 'rgb(39, 44, 61)' : null,
+              }}
+            >
+              {name} {deprecated ? ' (Deprecated)' : null}
+            </Option>
+          ))}
+      </OptGroup>
+    </Select>
   );
 }
 

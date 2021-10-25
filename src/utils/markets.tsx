@@ -448,7 +448,7 @@ export function useOrderbookAccounts() {
 }
 
 export function useOrderbook(
-  depth = 20,
+  depth = 500,
 ): [{ bids: number[][]; asks: number[][] }, boolean] {
   const { bidOrderbook, askOrderbook } = useOrderbookAccounts();
   const { market } = useMarket();
@@ -1233,12 +1233,7 @@ export function getExpectedFillPrice(
   return formattedPrice;
 }
 
-export function useCurrentlyAutoSettling(): [
-  boolean,
-  (currentlyAutoSettling: boolean) => void,
-] {
-  const [currentlyAutoSettling, setCurrentlyAutosettling] = useState<boolean>(
-    false,
-  );
+export function useCurrentlyAutoSettling(): [boolean, (currentlyAutoSettling: boolean) => void] {
+  const [currentlyAutoSettling, setCurrentlyAutosettling] = useState<boolean>(false);
   return [currentlyAutoSettling, setCurrentlyAutosettling];
 }

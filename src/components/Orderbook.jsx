@@ -57,7 +57,7 @@ const Price = styled.div`
 
 export default function Orderbook({
   smallScreen,
-  depth = 80,
+  depth = 26,
   onPrice,
   onSize,
 }) {
