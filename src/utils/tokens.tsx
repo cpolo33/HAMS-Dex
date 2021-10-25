@@ -1,5 +1,4 @@
 import * as BufferLayout from 'buffer-layout';
-import bs58 from 'bs58';
 import {AccountInfo, Connection, PublicKey} from '@solana/web3.js';
 import {WRAPPED_SOL_MINT} from '@project-serum/serum/lib/token-instructions';
 import {TokenAccount} from './types';
