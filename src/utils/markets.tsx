@@ -1,20 +1,37 @@
-import {Market, MARKETS, OpenOrders, Orderbook, TOKEN_MINTS, TokenInstructions,} from '@project-serum/serum';
-import {PublicKey} from '@solana/web3.js';
-import React, {useContext, useEffect, useState} from 'react';
-import {divideBnToNumber, floorToDecimal, getTokenMultiplierFromDecimals, sleep, useLocalStorageState,} from './utils';
-import {refreshCache, useAsyncData} from './fetch-loop';
-import {useAccountData, useAccountInfo, useConnection} from './connection';
-import {useWallet} from './wallet';
+import {
+  Market,
+  MARKETS,
+  OpenOrders,
+  Orderbook,
+  TOKEN_MINTS,
+  TokenInstructions,
+} from '@project-serum/serum';
+import { PublicKey } from '@solana/web3.js';
+import React, { useContext, useEffect, useState } from 'react';
+import {
+  divideBnToNumber,
+  floorToDecimal,
+  getTokenMultiplierFromDecimals,
+  sleep,
+  useLocalStorageState,
+} from './utils';
+import { refreshCache, useAsyncData } from './fetch-loop';
+import { useAccountData, useAccountInfo, useConnection } from './connection';
+import { useWallet } from './wallet';
 import tuple from 'immutable-tuple';
-import {notify} from './notifications';
+import { notify } from './notifications';
 import BN from 'bn.js';
-import {getTokenAccountInfo, parseTokenAccountData, useMintInfos,} from './tokens';
+import {
+  getTokenAccountInfo,
+  parseTokenAccountData,
+  useMintInfos,
+} from './tokens';
 import {
   Balances,
   BonfidaVolume,
-  DexLabVolume,
   CustomMarketInfo,
   DeprecatedOpenOrdersBalances,
+  DexLabVolume,
   FullMarketInfo,
   MarketContextValues,
   MarketInfo,
@@ -22,8 +39,8 @@ import {
   SelectedTokenAccounts,
   TokenAccount,
 } from './types';
-import {WRAPPED_SOL_MINT} from '@project-serum/serum/lib/token-instructions';
-import {Order} from '@project-serum/serum/lib/market';
+import { WRAPPED_SOL_MINT } from '@project-serum/serum/lib/token-instructions';
+import { Order } from '@project-serum/serum/lib/market';
 import BonfidaApi from './bonfidaConnector';
 import DexLabApi from './dexLabConnector';
 
@@ -35,7 +52,10 @@ export const USE_MARKETS: MarketInfo[] = _IGNORE_DEPRECATED
   : MARKETS;
 
 export function useMarketsList() {
-  return USE_MARKETS.filter(({ name, deprecated }) => !deprecated && !process.env.REACT_APP_EXCLUDE_MARKETS?.includes(name));
+  return USE_MARKETS.filter(
+    ({ name, deprecated }) =>
+      !deprecated && !process.env.REACT_APP_EXCLUDE_MARKETS?.includes(name),
+  );
 }
 
 export function useAllMarkets() {
@@ -359,22 +379,7 @@ export function useBonfidaTrades() {
   const { market, baseCurrency, quoteCurrency } = useMarket();
   const marketAddress = market?.address.toBase58();
   const marketName = baseCurrency! + quoteCurrency!;
-  let isHams = baseCurrency == HAMS_TOKEN || quoteCurrency == HAMS_TOKEN;
-
-  switch (baseCurrency) {
-    case 'HAMS':
-    case 'BOP':
-    case 'FTR':
-    case 'LIKE':
-    case 'LIQ':
-      isHams = true;
-      break;
-    default:
-      isHams = false;
-      break;
-  }
-
-  // console.log(quoteCurrency)
+  const isHams = baseCurrency == HAMS_TOKEN || quoteCurrency == HAMS_TOKEN;
 
   const params = isHams ? marketAddress : marketName;
 
@@ -419,16 +424,7 @@ export function useVolumes() {
     if (!params) {
       return null;
     }
-
-    const result = await BonfidaApi.get24HourVolumes(params);
-    if (result && result.length > 0)
-      if (result[0].volume == 0 || result[0].volumeUsd == 0) {
-        if (marketAddress) {
-          return await DexLabApi.get24HourVolumes(marketAddress);
-        }
-      }
-
-    return result;
+    return await BonfidaApi.get24HourVolumes(params);
   }
 
   return useAsyncData<BonfidaVolume[] | DexLabVolume | null>(
@@ -1237,7 +1233,12 @@ export function getExpectedFillPrice(
   return formattedPrice;
 }
 
-export function useCurrentlyAutoSettling(): [boolean, (currentlyAutoSettling: boolean) => void] {
-  const [currentlyAutoSettling, setCurrentlyAutosettling] = useState<boolean>(false);
+export function useCurrentlyAutoSettling(): [
+  boolean,
+  (currentlyAutoSettling: boolean) => void,
+] {
+  const [currentlyAutoSettling, setCurrentlyAutosettling] = useState<boolean>(
+    false,
+  );
   return [currentlyAutoSettling, setCurrentlyAutosettling];
 }

@@ -15,7 +15,7 @@ export function removeChart(chartId) {
   charts = charts.filter((chart) => chart.id !== chartId);
   localStorage.setItem(CHARTS_KEY, JSON.stringify(charts));
   localStorage.removeItem(CHARTS_KEY + '.' + chartId);
-  return new Promise<void>((resolve) => resolve());
+  return new Promise((resolve) => resolve());
 }
 
 export function saveChart(chartData) {

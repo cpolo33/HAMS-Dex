@@ -4,19 +4,14 @@ import {
   widget,
   ChartingLibraryWidgetOptions,
   IChartingLibraryWidget,
+  ResolutionString,
 } from '../../charting_library';
-import { useMarket, USE_MARKETS } from '../../utils/markets';
-import * as saveLoadAdapter from './saveLoadAdapter';
-import { flatten } from '../../utils/utils';
+import { useMarket } from '../../utils/markets';
 import { BONFIDA_DATA_FEED } from '../../utils/bonfidaConnector';
 
 export interface ChartContainerProps {
   symbol: ChartingLibraryWidgetOptions['symbol'];
   interval: ChartingLibraryWidgetOptions['interval'];
-  auto_save_delay: ChartingLibraryWidgetOptions['auto_save_delay'];
-
-  // BEWARE: no trailing slash is expected in feed URL
-  // datafeed: any;
   datafeedUrl: string;
   libraryPath: ChartingLibraryWidgetOptions['library_path'];
   chartsStorageUrl: ChartingLibraryWidgetOptions['charts_storage_url'];
@@ -33,47 +28,39 @@ export interface ChartContainerProps {
 export interface ChartContainerState {}
 
 export const TVChartContainer = () => {
-  // let datafeed = useTvDataFeed();
+  // @ts-ignore
   const defaultProps: ChartContainerProps = {
-    symbol: 'BTC/USDC',
-    // @ts-ignore
-    interval: '60',
-    auto_save_delay: 5,
+    symbol: 'HAMS/USDC',
+    interval: '60' as ResolutionString,
     theme: 'Dark',
     containerId: 'tv_chart_container',
-    // datafeed: datafeed,
+    datafeedUrl: BONFIDA_DATA_FEED,
     libraryPath: '/charting_library/',
-    chartsStorageApiVersion: '1.1',
-    clientId: 'tradingview.com',
-    userId: 'public_user_id',
     fullscreen: false,
     autosize: true,
-    datafeedUrl: BONFIDA_DATA_FEED,
     studiesOverrides: {},
   };
 
   const tvWidgetRef = React.useRef<IChartingLibraryWidget | null>(null);
-  const { market } = useMarket();
+  const { market, marketName } = useMarket();
 
-  const chartProperties = JSON.parse(
-    localStorage.getItem('chartproperties') || '{}',
-  );
+  let parsedMarketName;
+  switch (marketName) {
+    case 'BTC/WUSDT':
+      parsedMarketName = 'BTC/USDT';
+      break;
+    case 'ETH/WUSDT':
+      parsedMarketName = 'ETH/USDT';
+      break;
+    default:
+      parsedMarketName = marketName;
+  }
 
   React.useEffect(() => {
-    const savedProperties = flatten(chartProperties, {
-      restrictTo: ['scalesProperties', 'paneProperties', 'tradingProperties'],
-    });
-
     const widgetOptions: ChartingLibraryWidgetOptions = {
-      symbol:
-        USE_MARKETS.find(
-          (m) => m.address.toBase58() === market?.publicKey.toBase58(),
-        )?.name || 'HAMS/USDC',
+      symbol: marketName,
       // BEWARE: no trailing slash is expected in feed URL
       // tslint:disable-next-line:no-any
-      // @ts-ignore
-      // datafeed: datafeed,
-      // @ts-ignore
       datafeed: new (window as any).Datafeeds.UDFCompatibleDatafeed(
         defaultProps.datafeedUrl,
       ),
@@ -81,17 +68,23 @@ export const TVChartContainer = () => {
       container_id: defaultProps.containerId as ChartingLibraryWidgetOptions['container_id'],
       library_path: defaultProps.libraryPath as string,
       locale: 'en',
-      disabled_features: ['use_localstorage_for_settings'],
-      enabled_features: ['study_templates'],
+      disabled_features: [
+        'use_localstorage_for_settings',
+        'timeframes_toolbar',
+        'show_logo_on_all_charts',
+        'header_compare',
+        'compare_symbol',
+        'header_symbol_search'
+        ],
+
       load_last_chart: true,
       client_id: defaultProps.clientId,
       user_id: defaultProps.userId,
       fullscreen: defaultProps.fullscreen,
       autosize: defaultProps.autosize,
       studies_overrides: defaultProps.studiesOverrides,
-      theme: defaultProps.theme === 'Dark' ? 'Dark' : 'Light',
+      theme: 'Dark',
       overrides: {
-        ...savedProperties,
         "mainSeriesProperties.style": 3,
         "mainSeriesProperties.areaStyle.color1": "rgba(33, 150, 243, 0.28)",
         "mainSeriesProperties.areaStyle.color2": "#006064",
@@ -100,49 +93,30 @@ export const TVChartContainer = () => {
         "mainSeriesProperties.areaStyle.linewidth": 2,
         "mainSeriesProperties.areaStyle.priceSource": "close",
       },
-      // @ts-ignore
-      save_load_adapter: saveLoadAdapter,
-      settings_adapter: {
-        initialSettings: {
-          'trading.orderPanelSettingsBroker': JSON.stringify({
-            showRelativePriceControl: false,
-            showCurrencyRiskInQty: false,
-            showPercentRiskInQty: false,
-            showBracketsInCurrency: false,
-            showBracketsInPercent: false,
-          }),
-          // "proterty"
-          'trading.chart.proterty':
-            localStorage.getItem('trading.chart.proterty') ||
-            JSON.stringify({
-              hideFloatingPanel: 1,
-            }),
-          'chart.favoriteDrawings':
-            localStorage.getItem('chart.favoriteDrawings') ||
-            JSON.stringify([]),
-          'chart.favoriteDrawingsPosition':
-            localStorage.getItem('chart.favoriteDrawingsPosition') ||
-            JSON.stringify({}),
-        },
-        setValue: (key, value) => {
-          localStorage.setItem(key, value);
-        },
-        removeValue: (key) => {
-          localStorage.removeItem(key);
-        },
-      },
+      custom_css_url: '/charting_library/custom.css',
     };
 
     const tvWidget = new widget(widgetOptions);
+    tvWidgetRef.current = tvWidget;
 
     tvWidget.onChartReady(() => {
-      tvWidgetRef.current = tvWidget;
-      tvWidget
-        // @ts-ignore
-        .subscribe('onAutoSaveNeeded', () => tvWidget.saveChartToServer());
+      tvWidget.headerReady().then(() => {
+        const button = tvWidget.createButton();
+        button.setAttribute('title', 'Click to show a notification popup');
+        button.classList.add('apply-common-tooltip');
+        button.addEventListener('click', () =>
+          tvWidget.showNoticeDialog({
+            title: 'Notification',
+            body: 'TradingView Charting Library API works correctly',
+            callback: () => {
+              console.log('It works!!');
+            },
+          }),
+        );
+        button.innerHTML = 'Check API';
+      });
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [market, tvWidgetRef.current]);
+  }, [market]);
 
   return <div id={defaultProps.containerId} className={'TVChartContainer'} />;
 };
