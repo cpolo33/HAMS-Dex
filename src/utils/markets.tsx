@@ -1,5 +1,5 @@
 import {Market, MARKETS, OpenOrders, Orderbook, TOKEN_MINTS, TokenInstructions,} from '@project-serum/serum';
-import {PublicKey} from '@solana/web3.js';
+import {PublicKey, Connection} from '@solana/web3.js';
 import React, {useContext, useEffect, useState} from 'react';
 import {divideBnToNumber, floorToDecimal, getTokenMultiplierFromDecimals, sleep, useLocalStorageState,} from './utils';
 import {refreshCache, useAsyncData} from './fetch-loop';
@@ -26,6 +26,7 @@ import {WRAPPED_SOL_MINT} from '@project-serum/serum/lib/token-instructions';
 import {Order} from '@project-serum/serum/lib/market';
 import BonfidaApi from './bonfidaConnector';
 import DexLabApi from './dexLabConnector';
+import {getCache, setCache} from './fetch-loop';
 
 // Used in debugging, should be false in production
 const _IGNORE_DEPRECATED = false;
@@ -35,7 +36,7 @@ export const USE_MARKETS: MarketInfo[] = _IGNORE_DEPRECATED
   : MARKETS;
 
 export function useMarketsList() {
-  return USE_MARKETS.filter(({ name, deprecated }) => !deprecated && !process.env.REACT_APP_EXCLUDE_MARKETS?.includes(name));
+  return USE_MARKETS.filter(({ deprecated }) => !deprecated);
 }
 
 export function useAllMarkets() {
@@ -157,6 +158,7 @@ const _VERY_SLOW_REFRESH_INTERVAL = 5000 * 1000;
 
 // For things that don't really change
 const _SLOW_REFRESH_INTERVAL = 5 * 1000;
+const _SLOW_REFRESH_INTERVAL_NEW = 60 * 1000;
 
 // For things that change frequently
 const _FAST_REFRESH_INTERVAL = 1000;
@@ -228,6 +230,8 @@ export function MarketProvider({ marketAddress, setMarketAddress, children }) {
   }, []);
 
   const [market, setMarket] = useState<Market | null>();
+  const [marketName, setMarketName] = useState('HAMS/USDC');
+
   useEffect(() => {
     if (
       market &&
@@ -245,6 +249,8 @@ export function MarketProvider({ marketAddress, setMarketAddress, children }) {
         type: 'error',
       });
       return;
+    } else {
+      setMarketName(marketInfo.name);
     }
     Market.load(connection, marketInfo.address, {}, marketInfo.programId)
       .then(setMarket)
@@ -266,6 +272,7 @@ export function MarketProvider({ marketAddress, setMarketAddress, children }) {
         setMarketAddress,
         customMarkets,
         setCustomMarkets,
+        marketName,
       }}
     >
       {children}
@@ -380,7 +387,7 @@ export function useBonfidaTrades() {
   return useAsyncData(
     isHams ? getRecentHamsTrades : getBonfidaTrades,
     tuple('getBonfidaTrades', params),
-    { refreshInterval: _SLOW_REFRESH_INTERVAL },
+    { refreshInterval: _SLOW_REFRESH_INTERVAL_NEW },
     false,
   );
 }
@@ -428,7 +435,7 @@ export function useOrderbookAccounts() {
 }
 
 export function useOrderbook(
-  depth = 100,
+  depth = 20,
 ): [{ bids: number[][]; asks: number[][] }, boolean] {
   const { bidOrderbook, askOrderbook } = useOrderbookAccounts();
   const { market } = useMarket();
@@ -466,6 +473,34 @@ export function useOpenOrdersAccounts(fast = false) {
     tuple('getOpenOrdersAccounts', wallet, market, connected),
     { refreshInterval: fast ? _FAST_REFRESH_INTERVAL : _SLOW_REFRESH_INTERVAL },
   );
+}
+
+// todo: refresh cache after some time?
+export async function getCachedMarket(connection: Connection, address: PublicKey, programId: PublicKey) {
+  let market;
+  const cacheKey = tuple('getCachedMarket', 'market', address.toString(), connection);
+  if (!getCache(cacheKey)) {
+    market = await Market.load(connection, address, {}, programId)
+    setCache(cacheKey, market)
+  } else {
+    market = getCache(cacheKey);
+  }
+  return market;
+}
+
+export async function getCachedOpenOrderAccounts(connection: Connection, market: Market, owner: PublicKey) {
+  let accounts;
+  const cacheKey = tuple('getCachedOpenOrderAccounts', market.address.toString(), owner.toString(), connection);
+  if (!getCache(cacheKey)) {
+    accounts = await market.findOpenOrdersAccountsForOwner(
+      connection,
+      owner,
+    );
+    setCache(cacheKey, accounts);
+  } else {
+    accounts = getCache(cacheKey);
+  }
+  return accounts;
 }
 
 export function useSelectedOpenOrdersAccount(fast = false) {

@@ -14,10 +14,7 @@ const SizeTitle = styled(Row)`
   color: #ffffff;
 `;
 
-export default function PublicTrades({ 
-  smallScreen,
-  depth = 50,
- }) {
+export default function PublicTrades({ smallScreen }) {
   const { baseCurrency, quoteCurrency, market } = useMarket();
   const [trades, loaded] = useBonfidaTrades();
   const [height, setHeight] = useState(400);
@@ -26,15 +23,16 @@ export default function PublicTrades({
     <FloatingElement
       setHeight={setHeight}
       style={
-        smallScreen
-          ? {
-            flex: 1, overflow: 'hidden'
+        {
+          ...(smallScreen
+          ? { flex: 1, overflow: 'hidden'
           }
           : {
             marginTop: '10px',
             flex: 1,
             overflow: 'hidden'
-          }
+            }),
+        }
       }
     >
       <Divider>

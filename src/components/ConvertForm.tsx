@@ -24,6 +24,7 @@ import FloatingElement from './layout/FloatingElement';
 import WalletConnect from './WalletConnect';
 import { SwapOutlined } from '@ant-design/icons';
 import { CustomMarketInfo } from '../utils/types';
+// import Wallet from '@project-serum/sol-wallet-adapter';
 import { WalletAdapter } from '../wallet-adapters';
 
 const { Option } = Select;
@@ -41,7 +42,7 @@ const ConvertButton = styled(Button)`
 `;
 
 export default function ConvertForm() {
-  const { connected, wallet } = useWallet();
+  const { connected, wallet } = useWallet(); 
   const { customMarkets } = useCustomMarkets();
   const marketInfos = getMarketInfos(customMarkets);
   const [marketAddress, setMarketAddress] = useState<string | null>(null);
@@ -182,9 +183,7 @@ function ConvertFormSubmit({
   const balances = useBalances();
   const [fromAmount, setFromAmount] = useState<number | undefined>();
   const [toAmount, setToAmount] = useState<number | undefined>();
-  const {
-    storedFeeDiscountKey: feeDiscountKey,
-  } = useLocallyStoredFeeDiscountKey();
+  const { storedFeeDiscountKey: feeDiscountKey } = useLocallyStoredFeeDiscountKey();
 
   const connection = useConnection();
   const sendConnection = useSendConnection();

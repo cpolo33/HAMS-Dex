@@ -22,7 +22,6 @@ import LinkAddress from './LinkAddress';
 import { InfoCircleOutlined } from '@ant-design/icons';
 import { useInterval } from '../utils/useInterval';
 import { useLocalStorageState } from '../utils/utils';
-import { AUTO_SETTLE_DISABLED_OVERRIDE } from '../utils/preferences';
 import { useReferrer } from '../utils/referrer';
 
 const RowBox = styled(Row)`
@@ -52,13 +51,11 @@ export default function StandaloneBalancesDisplay() {
   const baseCurrencyAccount = useSelectedBaseCurrencyAccount();
   const quoteCurrencyAccount = useSelectedQuoteCurrencyAccount();
   const [tokenAccounts] = useTokenAccounts();
-  const baseCurrencyBalances =
+  const baseCurrencyBalances = 
     balances && balances.find((b) => b.coin === baseCurrency);
-  const quoteCurrencyBalances =
+  const quoteCurrencyBalances = 
     balances && balances.find((b) => b.coin === quoteCurrency);
-  const [autoSettleEnabled] = useLocalStorageState('autoSettleEnabled', true);
-  const [lastSettledAt, setLastSettledAt] = useState<number>(0);
-  const { usdcRef, usdtRef } = useReferrer();
+
   async function onSettleFunds() {
     if (!wallet) {
       notify({
@@ -110,8 +107,6 @@ export default function StandaloneBalancesDisplay() {
         wallet,
         baseCurrencyAccount,
         quoteCurrencyAccount,
-        usdcRef,
-        usdtRef,
       });
     } catch (e) {
       notify({
@@ -122,69 +117,25 @@ export default function StandaloneBalancesDisplay() {
     }
   }
 
-  useInterval(() => {
-    const autoSettle = async () => {
-      if (
-        AUTO_SETTLE_DISABLED_OVERRIDE ||
-        !wallet ||
-        !market ||
-        !openOrdersAccount ||
-        !baseCurrencyAccount ||
-        !quoteCurrencyAccount ||
-        !autoSettleEnabled
-      ) {
-        return;
-      }
-      if (
-        !baseCurrencyBalances?.unsettled &&
-        !quoteCurrencyBalances?.unsettled
-      ) {
-        return;
-      }
-      if (Date.now() - lastSettledAt < 15000) {
-        return;
-      }
-      try {
-        console.log('Settling funds...');
-        setLastSettledAt(Date.now());
-        await settleFunds({
-          market,
-          openOrders: openOrdersAccount,
-          connection,
-          wallet,
-          baseCurrencyAccount,
-          quoteCurrencyAccount,
-          usdcRef,
-          usdtRef,
-        });
-      } catch (e) {
-        console.log('Error auto settling funds: ' + e.message);
-        return;
-      }
-      console.log('Finished settling funds.');
-    };
-    connected && wallet?.autoApprove && autoSettleEnabled && autoSettle();
-  }, 1000);
-
   const formattedBalances: [
     string | undefined,
     Balances | undefined,
     string,
     string | undefined,
   ][] = [
-      [
-        baseCurrency,
-        baseCurrencyBalances,
-        'base',
-        market?.baseMintAddress.toBase58(),
-      ],
-      [
-        quoteCurrency,
-        quoteCurrencyBalances,
-        'quote',
-        market?.quoteMintAddress.toBase58(),
-      ],
-    ];
+    [
+      baseCurrency,
+      baseCurrencyBalances,
+      'base',
+      market?.baseMintAddress.toBase58(),
+    ],
+    [
+      quoteCurrency,
+      quoteCurrencyBalances,
+      'quote',
+      market?.quoteMintAddress.toBase58(),
+    ],
+  ];
 
   return (
     <FloatingElement style={{ flex: 1, paddingTop: 10 }}>
@@ -209,10 +160,10 @@ export default function StandaloneBalancesDisplay() {
                 <StandaloneTokenAccountsSelect
                   accounts={tokenAccounts?.filter(
                     (account) => account.effectiveMint.toBase58() === mint,
-                  )}
-                  mint={mint}
-                  label
-                />
+                    ).sort((a, b) => a.pubkey.toString() === wallet?.publicKey.toString() ? -1 : 1)}
+                    mint={mint}
+                    label
+                  />
               </RowBox>
             )}
             <RowBox

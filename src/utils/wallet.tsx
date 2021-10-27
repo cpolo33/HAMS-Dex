@@ -198,6 +198,7 @@ export function WalletProvider({ children }) {
 
           return (
             <Button
+              key={provider.name}
               size="large"
               type={providerUrl === provider.url ? 'primary' : 'ghost'}
               onClick={onClick}
