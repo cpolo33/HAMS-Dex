@@ -1,14 +1,15 @@
-import {Market, MARKETS, OpenOrders, Orderbook, TOKEN_MINTS, TokenInstructions,} from '@project-serum/serum';
+import { Market, OpenOrders, Orderbook, TokenInstructions } from '@project-serum/serum';
+import { MARKETS, TOKEN_MINTS } from './tokensAndMarkets';
 import {PublicKey, Connection} from '@solana/web3.js';
-import React, {useContext, useEffect, useState} from 'react';
-import {divideBnToNumber, floorToDecimal, getTokenMultiplierFromDecimals, sleep, useLocalStorageState,} from './utils';
-import {refreshCache, useAsyncData} from './fetch-loop';
-import {useAccountData, useAccountInfo, useConnection} from './connection';
-import {useWallet} from './wallet';
+import React, { useContext, useEffect, useState } from 'react';
+import { divideBnToNumber, floorToDecimal, getTokenMultiplierFromDecimals, sleep, useLocalStorageState, } from './utils';
+import { refreshCache, useAsyncData } from './fetch-loop';
+import { useAccountData, useAccountInfo, useConnection } from './connection';
+import { useWallet } from './wallet';
 import tuple from 'immutable-tuple';
-import {notify} from './notifications';
+import { notify } from './notifications';
 import BN from 'bn.js';
-import {getTokenAccountInfo, parseTokenAccountData, useMintInfos,} from './tokens';
+import { getTokenAccountInfo, parseTokenAccountData, useMintInfos, } from './tokens';
 import {
   Balances,
   BonfidaVolume,
@@ -22,8 +23,8 @@ import {
   SelectedTokenAccounts,
   TokenAccount,
 } from './types';
-import {WRAPPED_SOL_MINT} from '@project-serum/serum/lib/token-instructions';
-import {Order} from '@project-serum/serum/lib/market';
+import { WRAPPED_SOL_MINT } from '@project-serum/serum/lib/token-instructions';
+import { Order } from '@project-serum/serum/lib/market';
 import BonfidaApi from './bonfidaConnector';
 import DexLabApi from './dexLabConnector';
 import {getCache, setCache} from './fetch-loop';
@@ -36,7 +37,7 @@ export const USE_MARKETS: MarketInfo[] = _IGNORE_DEPRECATED
   : MARKETS;
 
 export function useMarketsList() {
-  return USE_MARKETS.filter(({ deprecated }) => !deprecated);
+  return USE_MARKETS.filter(({ name, deprecated }) => !deprecated && !process.env.REACT_APP_EXCLUDE_MARKETS?.includes(name));
 }
 
 export function useAllMarkets() {
@@ -230,8 +231,6 @@ export function MarketProvider({ marketAddress, setMarketAddress, children }) {
   }, []);
 
   const [market, setMarket] = useState<Market | null>();
-  const [marketName, setMarketName] = useState('HAMS/USDC');
-
   useEffect(() => {
     if (
       market &&
@@ -249,8 +248,6 @@ export function MarketProvider({ marketAddress, setMarketAddress, children }) {
         type: 'error',
       });
       return;
-    } else {
-      setMarketName(marketInfo.name);
     }
     Market.load(connection, marketInfo.address, {}, marketInfo.programId)
       .then(setMarket)
@@ -272,7 +269,6 @@ export function MarketProvider({ marketAddress, setMarketAddress, children }) {
         setMarketAddress,
         customMarkets,
         setCustomMarkets,
-        marketName,
       }}
     >
       {children}
@@ -363,31 +359,19 @@ export function _useUnfilteredTrades(limit = 10000) {
 }
 
 export function useBonfidaTrades() {
-  const { market, baseCurrency, quoteCurrency } = useMarket();
+  const { market } = useMarket();
   const marketAddress = market?.address.toBase58();
-  const marketName = baseCurrency! + quoteCurrency!;
-  const isHams = baseCurrency == HAMS_TOKEN || quoteCurrency == HAMS_TOKEN;
-
-  const params = isHams ? marketAddress : marketName;
-
-  async function getRecentHamsTrades() {
-    if (!params) {
-      return null;
-    }
-    return await BonfidaApi.getRecentHamsTrades(params);
-  }
-
   async function getBonfidaTrades() {
-    if (!params) {
+    if (!marketAddress) {
       return null;
     }
-    return await BonfidaApi.getRecentTrades(params);
+    return await BonfidaApi.getRecentTrades(marketAddress);
   }
 
   return useAsyncData(
-    isHams ? getRecentHamsTrades : getBonfidaTrades,
-    tuple('getBonfidaTrades', params),
-    { refreshInterval: _SLOW_REFRESH_INTERVAL_NEW },
+    getBonfidaTrades,
+    tuple('getBonfidaTrades', marketAddress),
+    { refreshInterval: _SLOW_REFRESH_INTERVAL },
     false,
   );
 }
@@ -650,11 +634,11 @@ export function useLocallyStoredFeeDiscountKey(): {
 export function useFeeDiscountKeys(): [
   (
     | {
-        pubkey: PublicKey;
-        feeTier: number;
-        balance: number;
-        mint: PublicKey;
-      }[]
+      pubkey: PublicKey;
+      feeTier: number;
+      balance: number;
+      mint: PublicKey;
+    }[]
     | null
     | undefined
   ),
@@ -891,8 +875,8 @@ export function useBalances(): Balances[] {
       orders:
         baseExists && market && openOrders
           ? market.baseSplSizeToNumber(
-              openOrders.baseTokenTotal.sub(openOrders.baseTokenFree),
-            )
+            openOrders.baseTokenTotal.sub(openOrders.baseTokenFree),
+          )
           : null,
       openOrders,
       unsettled:
@@ -909,8 +893,8 @@ export function useBalances(): Balances[] {
       orders:
         quoteExists && market && openOrders
           ? market.quoteSplSizeToNumber(
-              openOrders.quoteTokenTotal.sub(openOrders.quoteTokenFree),
-            )
+            openOrders.quoteTokenTotal.sub(openOrders.quoteTokenFree),
+          )
           : null,
       unsettled:
         quoteExists && market && openOrders

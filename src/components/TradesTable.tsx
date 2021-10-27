@@ -23,16 +23,15 @@ export default function PublicTrades({ smallScreen }) {
     <FloatingElement
       setHeight={setHeight}
       style={
-        {
-          ...(smallScreen
-          ? { flex: 1, overflow: 'hidden'
+        smallScreen
+          ? {
+            flex: 1, overflow: 'hidden'
           }
           : {
             marginTop: '10px',
             flex: 1,
             overflow: 'hidden'
-            }),
-        }
+          }
       }
     >
       <Divider>

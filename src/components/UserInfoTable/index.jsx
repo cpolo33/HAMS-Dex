@@ -101,7 +101,6 @@ export default function Index() {
       </Row>
       <div
         style={{
-          border: '1px solid #1C274F',
           height: 400,
           borderBottom: '',
           padding: 16,

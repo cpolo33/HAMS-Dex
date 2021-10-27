@@ -51,9 +51,9 @@ export default function StandaloneBalancesDisplay() {
   const baseCurrencyAccount = useSelectedBaseCurrencyAccount();
   const quoteCurrencyAccount = useSelectedQuoteCurrencyAccount();
   const [tokenAccounts] = useTokenAccounts();
-  const baseCurrencyBalances = 
+  const baseCurrencyBalances =
     balances && balances.find((b) => b.coin === baseCurrency);
-  const quoteCurrencyBalances = 
+  const quoteCurrencyBalances =
     balances && balances.find((b) => b.coin === quoteCurrency);
 
   async function onSettleFunds() {
@@ -123,19 +123,19 @@ export default function StandaloneBalancesDisplay() {
     string,
     string | undefined,
   ][] = [
-    [
-      baseCurrency,
-      baseCurrencyBalances,
-      'base',
-      market?.baseMintAddress.toBase58(),
-    ],
-    [
-      quoteCurrency,
-      quoteCurrencyBalances,
-      'quote',
-      market?.quoteMintAddress.toBase58(),
-    ],
-  ];
+      [
+        baseCurrency,
+        baseCurrencyBalances,
+        'base',
+        market?.baseMintAddress.toBase58(),
+      ],
+      [
+        quoteCurrency,
+        quoteCurrencyBalances,
+        'quote',
+        market?.quoteMintAddress.toBase58(),
+      ],
+    ];
 
   return (
     <FloatingElement style={{ flex: 1, paddingTop: 10 }}>
@@ -160,10 +160,10 @@ export default function StandaloneBalancesDisplay() {
                 <StandaloneTokenAccountsSelect
                   accounts={tokenAccounts?.filter(
                     (account) => account.effectiveMint.toBase58() === mint,
-                    ).sort((a, b) => a.pubkey.toString() === wallet?.publicKey.toString() ? -1 : 1)}
-                    mint={mint}
-                    label
-                  />
+                  ).sort((a, b) => a.pubkey.toString() === wallet?.publicKey.toString() ? -1 : 1)}
+                  mint={mint}
+                  label
+                />
               </RowBox>
             )}
             <RowBox
@@ -198,13 +198,6 @@ export default function StandaloneBalancesDisplay() {
                 </ActionButton>
               </Col>
             </RowBox>
-            <Tip>
-              All deposits go to your{' '}
-              <Link external to={providerUrl}>
-                {providerName}
-              </Link>{' '}
-              wallet
-            </Tip>
           </React.Fragment>
         ),
       )}
