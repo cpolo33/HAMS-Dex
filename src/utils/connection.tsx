@@ -6,9 +6,11 @@ import tuple from 'immutable-tuple';
 import { ConnectionContextValues, EndpointInfo } from './types';
 
 export const endpoints = [
+  { url: 'https://ninjahckvjcyato.main.genesysgo.net:8899', weight: 10 },
   { url: 'https://raydium.rpcpool.com', weight: 10 },
   { url: 'https://solana-api.projectserum.com', weight: 80 },
-  { url: 'https://raydium.genesysgo.net', weight: 10 }
+  { url: 'https://raydium.genesysgo.net', weight: 10 },
+  { url: 'https://dexlab.rpcpool.com', weight: 80 }
 ]
 
 export function getRandomEndpoint() {
