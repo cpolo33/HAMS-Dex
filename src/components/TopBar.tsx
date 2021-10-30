@@ -1,7 +1,8 @@
 import {
   PlusCircleOutlined,
+  WalletOutlined,
 } from '@ant-design/icons';
-import { Col, Menu, Row } from 'antd';
+import { Col, Menu, Row, Button } from 'antd';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useHistory, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
@@ -12,6 +13,8 @@ import { notify } from '../utils/notifications';
 import { Connection } from '@solana/web3.js';
 import WalletConnect from './WalletConnect';
 import { getTradePageUrl } from '../utils/markets';
+import MyTokenDialog from './MyTokenDialog';
+import { useWallet } from '../utils/wallet';
 
 const Wrapper = styled.div`
   background: linear-gradient(100.61deg, #090B0B 0%, #1C2222 100%);
@@ -22,6 +25,10 @@ const Wrapper = styled.div`
   flex-wrap: wrap;
 `;
 
+const ActionButton = styled(Button)`
+  color: #ffffff;
+  border-radius: 8px;
+`;
 const LogoWrapper = styled.div`
   display: flex;
   align-items: center;
@@ -48,6 +55,7 @@ const EXTERNAL_LINKS = {
 };
 
 export default function TopBar() {
+  const { connected } = useWallet();
   const {
     endpointInfo,
     setEndpoint,
@@ -56,6 +64,7 @@ export default function TopBar() {
   } = useConnectionConfig();
   const [addEndpointVisible, setAddEndpointVisible] = useState(false);
   const [testingConnection, setTestingConnection] = useState(false);
+  const [addMyTokenVisible, setAddMyTokenVisible] = useState(false);
   const location = useLocation();
   const history = useHistory();
 
@@ -133,6 +142,10 @@ export default function TopBar() {
         onAddCustomEndpoint={onAddCustomEndpoint}
         onClose={() => setAddEndpointVisible(false)}
       />
+      <MyTokenDialog
+        visible={addMyTokenVisible}
+        onClose={() => setAddMyTokenVisible(false)}
+      />
       <Wrapper>
         <div style={{ display: 'contents' }}>
           <LogoWrapper onClick={() => history.push(tradePageUrl)}>
@@ -175,15 +188,21 @@ export default function TopBar() {
           <div>
             <Row
               align="middle"
-              style={{ paddingLeft: 12, paddingRight: 5 }}
+              style={{ paddingLeft: 5, paddingRight: 5 }}
               gutter={16}
             >
-              <Col>
-                <PlusCircleOutlined
-                  style={{ color: '#2abdd2' }}
-                  onClick={() => setAddEndpointVisible(true)}
-                />
-              </Col>
+              {connected && (
+                <Col style={{ marginTop: '2px'}}>
+                  <ActionButton
+                  style={{border: '2px solid #2abdd2'}}
+                    block
+                    size="large"
+                    icon={<WalletOutlined />}
+                    onClick={() => setAddMyTokenVisible(true)}>
+                    My token
+                    </ActionButton>
+                </Col>
+              )}
               {/*
               <Col>
                 <Popover

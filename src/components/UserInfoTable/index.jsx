@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import { Col, Row } from 'antd';
 import FillsTable from './FillsTable';
 import FloatingElement from '../layout/FloatingElement';
-import FeesTable from './FeesTable';
 import { useOpenOrders, useBalances, useMarket } from '../../utils/markets';
 
 export default function Index() {
@@ -12,14 +11,15 @@ export default function Index() {
   const [activeKeyStr, setActiveKeyStr] = useState('orders');
   return (
     <FloatingElement style={{ flex: 1, paddingTop: 4 }}>
-      <Row>
+      <Row style={{ justifyContent: 'center' }}>
         <Col
           span={24 / (market && market.supportsSrmFeeDiscounts ? 4 : 3)}
           onClick={() => setActiveKeyStr('orders')}
           style={{
-            height: 42,
+            height: 'auto',
             width: '30%',
             textAlign: 'center',
+            justifyContent: 'center',
             border: 'transparent',
             borderBottom: activeKeyStr === 'orders' ? '2px solid #5AC4BE' : '',
             background: 'transparent',
@@ -30,7 +30,7 @@ export default function Index() {
               activeKeyStr === 'orders'
                 ? '#F1F1F2'
                 : 'rgba(241, 241, 242, 0.5)',
-            padding: '12px 0 12px',
+            padding: '6px 0 10px',
           }}
         >
           Open Orders
@@ -39,9 +39,10 @@ export default function Index() {
           span={24 / (market && market.supportsSrmFeeDiscounts ? 4 : 3)}
           onClick={() => setActiveKeyStr('fills')}
           style={{
-            height: 42,
+            height: 'auto',
             width: '30%',
             textAlign: 'center',
+            justifyContent: 'center',
             border: 'transparent',
             borderBottom: activeKeyStr === 'fills' ? '2px solid #5AC4BE' : '',
             background: 'transparent',
@@ -50,7 +51,7 @@ export default function Index() {
             fontWeight: 600,
             color:
               activeKeyStr === 'fills' ? '#F1F1F2' : 'rgba(241, 241, 242, 0.5)',
-            padding: '12px 0 12px',
+            padding: '6px 0 10px',
           }}
         >
           Recent Trade History
@@ -59,9 +60,10 @@ export default function Index() {
           span={24 / (market && market.supportsSrmFeeDiscounts ? 4 : 3)}
           onClick={() => setActiveKeyStr('balances')}
           style={{
-            height: 42,
+            height: 'auto',
             width: '30%',
             textAlign: 'center',
+            justifyContent: 'center',
             border: 'transparent',
             borderBottom:
               activeKeyStr === 'balances' ? '2px solid #5AC4BE' : '',
@@ -73,35 +75,11 @@ export default function Index() {
               activeKeyStr === 'balances'
                 ? '#F1F1F2'
                 : 'rgba(241, 241, 242, 0.5)',
-            padding: '12px 0 12px',
+            padding: '6px 0 10px',
           }}
         >
           Balances
         </Col>
-        {market && market.supportsSrmFeeDiscounts ? (
-          <Col
-            span={24 / (market && market.supportsSrmFeeDiscounts ? 4 : 3)}
-            onClick={() => setActiveKeyStr('fees')}
-            style={{
-              height: 42,
-              width: '30%',
-              textAlign: 'center',
-              border: 'transparent',
-              borderBottom: activeKeyStr === 'fees' ? '2px solid #5AC4BE' : '',
-              background: 'transparent',
-              fontSize: 14,
-              fontStyle: 'normal',
-              fontWeight: 600,
-              color:
-                activeKeyStr === 'fees'
-                  ? '#F1F1F2'
-                  : 'rgba(241, 241, 242, 0.5)',
-              padding: '12px 0 12px',
-            }}
-          >
-            Fee Discounts
-          </Col>
-        ) : null}
       </Row>
       <div
         style={{
@@ -113,7 +91,6 @@ export default function Index() {
         {activeKeyStr && activeKeyStr === 'orders' ? <OpenOrdersTab /> : null}
         {activeKeyStr && activeKeyStr === 'fills' ? <FillsTable /> : null}
         {activeKeyStr && activeKeyStr === 'balances' ? <BalancesTab /> : null}
-        {activeKeyStr && activeKeyStr === 'fees' ? <FeesTable /> : null}
       </div>
     </FloatingElement>
   );
