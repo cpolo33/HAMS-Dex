@@ -12,6 +12,12 @@ import {
 } from '@ant-design/icons';
 import Link from './Link';
 import { TOKEN_MINTS } from '../utils/tokensAndMarkets';
+import styled from 'styled-components';
+
+const ActionButton = styled(Button)`
+  color: #ffffff;
+  border-radius: 8px;
+`;
 
 export default function MyTokenDialog({ visible, onClose }) {
   const [state, setState] = useState({
@@ -291,18 +297,16 @@ export default function MyTokenDialog({ visible, onClose }) {
       onCancel={onDoClose}
     >
       {connected && wallet && (
-        <Button
+        <ActionButton
           type="primary"
+          style={{ border: '2px solid #2abdd2', marginBottom: '10px' }}
+          block
+          size="large"
           icon={<ReloadOutlined />}
           onClick={getRefresh}
-          style={{
-            marginBottom: '10px',
-            borderRadius: '8px',
-            color: '#163F52',
-          }}
         >
           Refresh
-        </Button>
+        </ActionButton>
       )}
       <Table
         dataSource={dataSource}
