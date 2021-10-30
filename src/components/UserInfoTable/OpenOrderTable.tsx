@@ -72,7 +72,7 @@ export default function OpenOrderTable({
           <Col span={5} style={{ textAlign: 'right' }}>Price</Col>
           <Col span={4} style={{ textAlign: 'right' }}> </Col>
         </Row>
-        <div style={{ height: 350, overflowX: 'hidden' }}>
+        <div style={{ height: 250, overflowX: 'hidden' }}>
           {dataSource.map(({ marketName, side, size, price, orderId }, i) => (
             <Row key={i} style={{ fontSize: 14, color: 'rgba(241, 241, 242, 1)', paddingBottom: 16 }}>
               <Col span={5} style={{ textAlign: 'left' }}>{marketName}</Col>

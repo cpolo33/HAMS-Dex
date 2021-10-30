@@ -17,6 +17,7 @@ export default function Index() {
           span={24 / (market && market.supportsSrmFeeDiscounts ? 4 : 3)}
           onClick={() => setActiveKeyStr('orders')}
           style={{
+            height: 42,
             width: '30%',
             textAlign: 'center',
             border: 'transparent',
@@ -38,6 +39,7 @@ export default function Index() {
           span={24 / (market && market.supportsSrmFeeDiscounts ? 4 : 3)}
           onClick={() => setActiveKeyStr('fills')}
           style={{
+            height: 42,
             width: '30%',
             textAlign: 'center',
             border: 'transparent',
@@ -57,6 +59,7 @@ export default function Index() {
           span={24 / (market && market.supportsSrmFeeDiscounts ? 4 : 3)}
           onClick={() => setActiveKeyStr('balances')}
           style={{
+            height: 42,
             width: '30%',
             textAlign: 'center',
             border: 'transparent',
@@ -80,6 +83,7 @@ export default function Index() {
             span={24 / (market && market.supportsSrmFeeDiscounts ? 4 : 3)}
             onClick={() => setActiveKeyStr('fees')}
             style={{
+              height: 42,
               width: '30%',
               textAlign: 'center',
               border: 'transparent',
@@ -101,7 +105,7 @@ export default function Index() {
       </Row>
       <div
         style={{
-          height: 400,
+          height: 300,
           borderBottom: '',
           padding: 16,
         }}
