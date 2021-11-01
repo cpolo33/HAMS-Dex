@@ -192,7 +192,7 @@ export default function TopBar() {
               gutter={16}
             >
               {connected && (
-                <Col style={{ marginTop: '2px'}}>
+                <Col style={{ marginTop: '1px'}}>
                   <ActionButton
                   style={{border: '2px solid #2abdd2'}}
                     block
