@@ -1,14 +1,13 @@
-import React, { ReactElement, useState } from "react";
+import  React, { ReactElement } from "react";
 import { PublicKey } from "@solana/web3.js";
 import { TokenListContainer } from "@solana/spl-token-registry";
 import { Provider } from "@project-serum/anchor";
 import { Swap as SwapClient } from "@project-serum/swap";
 import {
-  createTheme,
+  createMuiTheme,
   ThemeOptions,
   ThemeProvider,
 } from "@material-ui/core/styles";
-import { Grid } from "@material-ui/core";
 import {
   SwapContextProvider,
   useSwapContext,
@@ -29,7 +28,6 @@ import SwapCard, {
   SwapTokenForm,
 } from "./components/Swap";
 import TokenDialog from "./components/TokenDialog";
-import DestinationStats from "./components/DestinationStats";
 
 /**
  * A`Swap` component that can be embedded into applications. To use,
@@ -60,8 +58,10 @@ export default function Swap(props: SwapProps): ReactElement {
     toAmount,
     referral,
   } = props;
+
+  // @ts-ignore
   const swapClient = new SwapClient(provider, tokenList);
-  const theme = createTheme(
+  const theme = createMuiTheme(
     materialTheme || {
       palette: {
         primary: {
@@ -78,42 +78,23 @@ export default function Swap(props: SwapProps): ReactElement {
       },
     }
   );
-
-  const [reloadAccounts, setReloadAccounts] = useState(false)
-
-  const handleSetReloadAccounts = (shouldReload: boolean) => {
-    setReloadAccounts(shouldReload)
-  }
-
   return (
     <ThemeProvider theme={theme}>
       <TokenListContextProvider tokenList={tokenList}>
-        <TokenContextProvider provider={provider} reloadAccounts={reloadAccounts}>
-          <DexContextProvider 
-            swapClient={swapClient} 
-            reloadAccounts={reloadAccounts}
-            setReloadAccounts={handleSetReloadAccounts}>
+        <TokenContextProvider provider={provider}>
+          <DexContextProvider swapClient={swapClient}>
             <SwapContextProvider
               fromMint={fromMint}
               toMint={toMint}
               fromAmount={fromAmount}
               toAmount={toAmount}
               referral={referral}
-              reloadAccounts={reloadAccounts}
-              setReloadAccounts={handleSetReloadAccounts}
             >
-              <Grid container justifyContent="space-between" alignItems="flex-start" wrap="nowrap">
-                <Grid item>
-                  <SwapCard
-                    containerStyle={containerStyle}
-                    contentStyle={contentStyle}
-                    swapTokenContainerStyle={swapTokenContainerStyle}
-                  />
-                </Grid>
-                <Grid item style={{ paddingLeft: 104, flexGrow: 1 }}>
-                  <DestinationStats />
-                </Grid>
-              </Grid>
+              <SwapCard
+                containerStyle={containerStyle}
+                contentStyle={contentStyle}
+                swapTokenContainerStyle={swapTokenContainerStyle}
+              />
             </SwapContextProvider>
           </DexContextProvider>
         </TokenContextProvider>

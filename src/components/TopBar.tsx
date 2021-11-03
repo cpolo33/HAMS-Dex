@@ -180,6 +180,9 @@ export default function TopBar() {
             <Menu.Item key="https://app.step.finance/#/dashboard" style={{ margin: '0 0 0 20px', color: '#2abdd2', fontWeight: 'normal' }}>
               <a href="https://app.step.finance/#/dashboard" target="_blank" rel="noopener noreferrer">DASHBOARD</a>
             </Menu.Item>
+            <Menu.Item key={"/swap/"} style={{ margin: '0 0 0 20px', color: '#ffffff', fontWeight: 'normal' }}>
+              Swap
+             </Menu.Item>
             {/* <Menu.Item key={'/swap'} style={{ margin: '0 0 0 20px', color: '#2abdd2', fontWeight: 'normal' }}>
                 SWAP
               </Menu.Item>
@@ -192,9 +195,9 @@ export default function TopBar() {
               gutter={16}
             >
               {connected && (
-                <Col style={{ marginTop: '1px'}}>
+                <Col style={{ marginTop: '1px' }}>
                   <ActionButton
-                  style={{border: '2px solid #2abdd2'}}
+                    style={{ border: '2px solid #2abdd2' }}
                     block
                     size="large"
                     icon={<WalletOutlined />}

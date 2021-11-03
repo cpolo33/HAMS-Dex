@@ -31,7 +31,7 @@ const useStyles = makeStyles((theme) => ({
   tabSelected: {
     color: theme.palette.primary.contrastText,
     fontWeight: 700,
-    backgroundColor: "#FF810A",
+    backgroundColor: "#2abdd2",
     borderRadius: "10px",
   },
   tabIndicator: {
@@ -83,7 +83,7 @@ export default function TokenDialog({
       }}
     >
       <DialogTitle style={{ fontWeight: "bold" }}>
-        <Typography variant="h6" style={{ paddingBottom: "16px", color: "#000" }}>
+        <Typography variant="h6" style={{ paddingBottom: "16px", color: "#000000" }}>
           Select a token
         </Typography>
         <TextField

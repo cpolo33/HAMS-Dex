@@ -2,26 +2,27 @@ import React, { useContext, useState, useEffect } from "react";
 import * as assert from "assert";
 import { useAsync } from "react-async-hook";
 import { Provider, BN } from "@project-serum/anchor";
-import { PublicKey, Keypair } from "@solana/web3.js";
+import { PublicKey, Account } from "@solana/web3.js";
 import {
   MintInfo,
   AccountInfo as TokenAccount,
   Token,
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
-import { getOwnedTokenAccounts, parseTokenAccountData } from "../utils/tokens";
+import {
+  getOwnedAssociatedTokenAccounts,
+  parseTokenAccountData,
+} from "../utils/tokens";
 import { SOL_MINT } from "../utils/pubkeys";
 
 export type TokenContext = {
   provider: Provider;
-  isLoaded: boolean;
 };
 const _TokenContext = React.createContext<TokenContext | null>(null);
 
 export function TokenContextProvider(props: any) {
   const provider = props.provider;
   const [, setRefresh] = useState(0);
-  const [isLoaded, setIsLoaded] = useState(false);
 
   // Fetch all the owned token accounts for the wallet.
   useEffect(() => {
@@ -29,23 +30,19 @@ export function TokenContextProvider(props: any) {
       _OWNED_TOKEN_ACCOUNTS_CACHE.length = 0;
       setRefresh((r) => r + 1);
       return;
-    } else if(provider.wallet.publicKey.toString() === "11111111111111111111111111111111") {
-      // wallet hasn't loaded yet
-      console.log('wallet has not loaded yet')
-      return 
     }
     // Fetch SPL tokens.
-    getOwnedTokenAccounts(provider.connection, provider.wallet.publicKey).then(
-      (accs) => {
-        if (accs) {
-          _OWNED_TOKEN_ACCOUNTS_CACHE.push(...accs);
-          setRefresh((r) => r + 1);
-        }
-        console.log("setting is loaded");
-        setIsLoaded(true);
+    getOwnedAssociatedTokenAccounts(
+      provider.connection,
+      provider.wallet.publicKey
+    ).then((accs) => {
+      if (accs) {
+        // @ts-ignore
+        _OWNED_TOKEN_ACCOUNTS_CACHE.push(...accs);
+        setRefresh((r) => r + 1);
       }
-    );
-    // Fetch SOL balance. 
+    });
+    // Fetch SOL balance.
     provider.connection
       .getAccountInfo(provider.wallet.publicKey)
       .then((acc: { lamports: number }) => {
@@ -61,13 +58,12 @@ export function TokenContextProvider(props: any) {
           setRefresh((r) => r + 1);
         }
       });
-  }, [provider.wallet.publicKey, provider.connection, props.reloadAccounts]);
+  }, [provider.wallet.publicKey, provider.connection]);
 
   return (
     <_TokenContext.Provider
       value={{
         provider,
-        isLoaded,
       }}
     >
       {props.children}
@@ -75,7 +71,7 @@ export function TokenContextProvider(props: any) {
   );
 }
 
-export function useTokenContext() {
+function useTokenContext() {
   const ctx = useContext(_TokenContext);
   if (ctx === null) {
     throw new Error("Context not available");
@@ -99,8 +95,8 @@ export function useOwnedTokenAccount(
     a.account.amount > b.account.amount
       ? -1
       : a.account.amount < b.account.amount
-        ? 1
-        : 0
+      ? 1
+      : 0
   );
 
   let tokenAccount = tokenAccounts[0];
@@ -132,12 +128,18 @@ export function useOwnedTokenAccount(
       listener = provider.connection.onAccountChange(
         tokenAccount.publicKey,
         (info) => {
-          const token = parseTokenAccountData(info.data);
-          if (token.amount !== tokenAccount.account.amount) {
-            const index = _OWNED_TOKEN_ACCOUNTS_CACHE.indexOf(tokenAccount);
-            assert.ok(index >= 0);
-            _OWNED_TOKEN_ACCOUNTS_CACHE[index].account = token;
-            setRefresh((r) => r + 1);
+          if (info.data.length !== 0) {
+            try {
+              const token = parseTokenAccountData(info.data);
+              if (token.amount !== tokenAccount.account.amount) {
+                const index = _OWNED_TOKEN_ACCOUNTS_CACHE.indexOf(tokenAccount);
+                assert.ok(index >= 0);
+                _OWNED_TOKEN_ACCOUNTS_CACHE[index].account = token;
+                setRefresh((r) => r + 1);
+              }
+            } catch (error) {
+              console.log("Failed to decode token AccountInfo");
+            }
           }
         }
       );
@@ -175,7 +177,7 @@ export function useMint(mint?: PublicKey): MintInfo | undefined | null {
       provider.connection,
       mint,
       TOKEN_PROGRAM_ID,
-      new Keypair()
+      new Account()
     );
     const mintInfo = mintClient.getMintInfo();
     _MINT_CACHE.set(mint.toString(), mintInfo);

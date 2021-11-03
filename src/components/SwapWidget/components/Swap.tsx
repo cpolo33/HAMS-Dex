@@ -1,19 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   PublicKey,
   Keypair,
   Transaction,
   SystemProgram,
   Signer,
-  SYSVAR_RENT_PUBKEY,
 } from "@solana/web3.js";
-import {
-  Token,
-  TOKEN_PROGRAM_ID,
-  ASSOCIATED_TOKEN_PROGRAM_ID,
-  u64,
-} from "@solana/spl-token";
-import { OpenOrders } from "@project-serum/serum";
+import { Token, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { BN, Provider } from "@project-serum/anchor";
 import {
   makeStyles,
@@ -23,7 +16,7 @@ import {
   TextField,
   useTheme,
 } from "@material-ui/core";
-import { ExpandMore } from "@material-ui/icons";
+import { ExpandMore, ImportExportRounded } from "@material-ui/icons";
 import { useSwapContext, useSwapFair } from "../context/Swap";
 import {
   useDexContext,
@@ -33,42 +26,34 @@ import {
   FEE_MULTIPLIER,
 } from "../context/Dex";
 import { useTokenMap } from "../context/TokenList";
-import {
-  useMint,
-  useOwnedTokenAccount,
-  useTokenContext,
-} from "../context/Token";
-import { useCanSwap, useReferral, useIsWrapSol } from "../context/Swap";
+import { useMint, useOwnedTokenAccount } from "../context/Token";
+import { useCanSwap, useReferral } from "../context/Swap";
 import TokenDialog from "./TokenDialog";
 import { SettingsButton } from "./Settings";
-import { SOL_MINT, WRAPPED_SOL_MINT, DEX_PID } from "../utils/pubkeys";
+import { InfoLabel } from "./Info";
+import { SOL_MINT, WRAPPED_SOL_MINT } from "../utils/pubkeys";
 
 const useStyles = makeStyles((theme) => ({
   card: {
-    width: 424,
-    borderRadius: 8,
+    width: theme.spacing(50),
+    borderRadius: theme.spacing(2),
     boxShadow: "0px 0px 30px 5px rgba(0,0,0,0.075)",
-    padding: 0,
-    background: "#1C2222",
-    color: "#fff",
-    "& button:hover": {
-      opacity: 0.8,
-    },
+    padding: theme.spacing(2),
   },
   tab: {
     width: "50%",
   },
+  settingsButton: {
+    padding: 0,
+  },
   swapButton: {
     width: "100%",
-    borderRadius: 8,
-    background: "linear-gradient(100.61deg, #B85900 0%, #FF810A 100%)",
-    color: "#fff",
-    fontSize: 20,
-    fontWeight: 500,
+    borderRadius: theme.spacing(2),
+    backgroundColor: theme.palette.primary.main,
+    color: theme.palette.primary.contrastText,
+    fontSize: 16,
+    fontWeight: 700,
     padding: theme.spacing(1.5),
-    "& .MuiButton-label": {
-      textTransform: "none",
-    },
   },
   swapToFromButton: {
     display: "block",
@@ -78,30 +63,19 @@ const useStyles = makeStyles((theme) => ({
   amountInput: {
     fontSize: 22,
     fontWeight: 600,
-    color: "#fff",
   },
   input: {
     textAlign: "right",
-    '&::-webkit-outer-spin-button': {
-      '-webkit-appearance': 'none',
-      margin: 0,
-    },
-    '&::-webkit-inner-spin-button': {
-      '-webkit-appearance': 'none',
-      margin: 0,
-    },
-    'input[type=number]': {
-      '-moz-appearance': 'textfield'
-    }
   },
   swapTokenFormContainer: {
     borderRadius: theme.spacing(2),
+    boxShadow: "0px 0px 15px 2px rgba(33,150,243,0.1)",
     display: "flex",
     justifyContent: "space-between",
     padding: theme.spacing(1),
   },
   swapTokenSelectorContainer: {
-    marginLeft: 0,
+    marginLeft: theme.spacing(1),
     display: "flex",
     flexDirection: "column",
     width: "50%",
@@ -113,13 +87,10 @@ const useStyles = makeStyles((theme) => ({
   },
   maxButton: {
     marginLeft: theme.spacing(1),
-    color: "#F37B21",
-    zIndex: 1,
+    color: theme.palette.primary.main,
     fontWeight: 700,
     fontSize: "12px",
     cursor: "pointer",
-    position: "absolute",
-    right: 15,
   },
   tokenButton: {
     display: "flex",
@@ -139,36 +110,15 @@ export default function SwapCard({
   swapTokenContainerStyle?: any;
 }) {
   const styles = useStyles();
-  const { slippage } = useSwapContext();
   return (
     <Card className={styles.card} style={containerStyle}>
       <SwapHeader />
       <div style={contentStyle}>
-        <div
-          style={{
-            borderRadius: 8,
-            padding: 24,
-          }}
-        >
-          <label style={{ fontWeight: 600, fontSize: 16, color: "#676767" }}>From</label>
-          <SwapFromForm style={swapTokenContainerStyle} />
-          <sub style={{ top: -11, color: "#676767", fontWeight: 500, fontSize: 14 }}>
-            Slippage tolerance <u>{slippage}%</u>
-          </sub>
-        </div>
-        <div
-          style={{
-            background: "#121616",
-            borderRadius: 8,
-            padding: "40px 24px 24px",
-            position: "relative",
-          }}
-        >
-          <ArrowButton />
-          <label style={{ fontWeight: 600, fontSize: 16, color: "#676767" }}>To</label>
-          <SwapToForm style={swapTokenContainerStyle} />
-          <SwapButton />
-        </div>
+        <SwapFromForm style={swapTokenContainerStyle} />
+        <ArrowButton />
+        <SwapToForm style={swapTokenContainerStyle} />
+        <InfoLabel />
+        <SwapButton />
       </div>
     </Card>
   );
@@ -179,26 +129,18 @@ export function SwapHeader() {
     <div
       style={{
         display: "flex",
-        justifyContent: "flex-end",
-        position: "relative",
-        borderBottom: "1px solid #121616",
-        padding: "16px 24px",
+        justifyContent: "space-between",
+        marginBottom: "16px",
       }}
     >
       <Typography
         style={{
-          fontSize: 20,
-          fontWeight: 500,
-          color: "#fff",
-          width: "100%",
-          position: "absolute",
-          left: 0,
-          textAlign: "center",
+          fontSize: 18,
+          fontWeight: 700,
         }}
       >
-        Swap
+        SWAP
       </Typography>
-
       <SettingsButton />
     </div>
   );
@@ -206,20 +148,14 @@ export function SwapHeader() {
 
 export function ArrowButton() {
   const styles = useStyles();
+  const theme = useTheme();
   const { swapToFromMints } = useSwapContext();
   return (
-    <button
+    <ImportExportRounded
       className={styles.swapToFromButton}
+      fontSize="large"
+      htmlColor={theme.palette.primary.main}
       onClick={swapToFromMints}
-      style={{
-        background: "#121616 url(/icons/arrow-double.svg) center/55% no-repeat",
-        border: "4px solid #1C2222",
-        position: "absolute",
-        width: 48,
-        height: 48,
-        borderRadius: 24,
-        top: -34,
-      }}
     />
   );
 }
@@ -280,20 +216,20 @@ export function SwapTokenForm({
 
   const formattedAmount =
     mintAccount && amount
-      ? amount.toLocaleString("en-US", {
+      ? amount.toLocaleString("fullwide", {
           maximumFractionDigits: mintAccount.decimals,
           useGrouping: false,
         })
-      : '';
+      : amount;
 
   return (
     <div className={styles.swapTokenFormContainer} style={style}>
       <div className={styles.swapTokenSelectorContainer}>
         <TokenButton mint={mint} onClick={() => setShowTokenDialog(true)} />
-        <Typography style={{ color: "white" }} className={styles.balanceContainer}>
+        <Typography color="textSecondary" className={styles.balanceContainer}>
           {tokenAccount && mintAccount
             ? `Balance: ${balance?.toFixed(mintAccount.decimals)}`
-            : <span>&nbsp;</span>}
+            : `-`}
           {from && !!balance ? (
             <span
               className={styles.maxButton}
@@ -307,7 +243,6 @@ export function SwapTokenForm({
       <TextField
         type="number"
         value={formattedAmount}
-        placeholder={'0'}
         onChange={(e) => setAmount(parseFloat(e.target.value))}
         InputProps={{
           disableUnderline: true,
@@ -339,7 +274,7 @@ function TokenButton({
   return (
     <div onClick={onClick} className={styles.tokenButton}>
       <TokenIcon mint={mint} style={{ width: theme.spacing(4) }} />
-      <TokenName mint={mint} style={{ fontSize: 24, fontWeight: 500 }} />
+      <TokenName mint={mint} style={{ fontSize: 14, fontWeight: 700 }} />
       <ExpandMore />
     </div>
   );
@@ -369,12 +304,12 @@ function TokenName({ mint, style }: { mint: PublicKey; style: any }) {
   const tokenMap = useTokenMap();
   const theme = useTheme();
   let tokenInfo = tokenMap.get(mint.toString());
+
   return (
     <Typography
       style={{
         marginLeft: theme.spacing(2),
         marginRight: theme.spacing(1),
-        color: "#FFFAF5",
         ...style,
       }}
     >
@@ -392,12 +327,8 @@ export function SwapButton() {
     slippage,
     isClosingNewAccounts,
     isStrict,
-    setReloadAccounts,
-    reloadAccounts
   } = useSwapContext();
-
-  const { swapClient, isLoaded: isDexLoaded } = useDexContext();
-  const { isLoaded: isTokensLoaded } = useTokenContext();
+  const { swapClient } = useDexContext();
   const fromMintInfo = useMint(fromMint);
   const toMintInfo = useMint(toMint);
   const openOrders = useOpenOrders();
@@ -409,7 +340,6 @@ export function SwapButton() {
     route && route.markets ? route.markets[1] : undefined
   );
   const canSwap = useCanSwap();
-
   const referral = useReferral(fromMarket);
   const fair = useSwapFair();
   let fromWallet = useOwnedTokenAccount(fromMint);
@@ -417,233 +347,6 @@ export function SwapButton() {
   const quoteMint = fromMarket && fromMarket.quoteMintAddress;
   const quoteMintInfo = useMint(quoteMint);
   const quoteWallet = useOwnedTokenAccount(quoteMint);
-  const { isWrapSol, isUnwrapSol } = useIsWrapSol(fromMint, toMint);
-
-  const fromOpenOrders = fromMarket
-    ? openOrders.get(fromMarket?.address.toString())
-    : undefined;
-  const toOpenOrders = toMarket
-    ? openOrders.get(toMarket?.address.toString())
-    : undefined;
-  const disconnected = !swapClient.program.provider.wallet.publicKey;
-
-
-  const [needsCreateAccounts, setNeedsCreateAccounts] = useState(!toWallet || !fromOpenOrders || (toMarket && !toOpenOrders))
-
-  useEffect(() => {
-
-    const fromOpenOrders = fromMarket
-      ? openOrders.get(fromMarket?.address.toString())
-      : undefined;
-    const toOpenOrders = toMarket
-      ? openOrders.get(toMarket?.address.toString())
-      : undefined;
-
-    const nca = !toWallet || !fromOpenOrders || (toMarket && !toOpenOrders);
-    setNeedsCreateAccounts(nca || false)
-  }, [reloadAccounts, toWallet, fromWallet])
-
-
-  // Click handlers.
-  const sendCreateAccountsTransaction = async () => {
-    if (!fromMintInfo || !toMintInfo) {
-      throw new Error("Unable to calculate mint decimals");
-    }
-    if (!quoteMint || !quoteMintInfo) {
-      throw new Error("Quote mint not found");
-    }
-    const tx = new Transaction();
-    const signers : any[] = [];
-    if (!toWallet) {
-      const associatedTokenPubkey = await Token.getAssociatedTokenAddress(
-        ASSOCIATED_TOKEN_PROGRAM_ID,
-        TOKEN_PROGRAM_ID,
-        toMint,
-        swapClient.program.provider.wallet.publicKey
-      );
-      tx.add(
-        Token.createAssociatedTokenAccountInstruction(
-          ASSOCIATED_TOKEN_PROGRAM_ID,
-          TOKEN_PROGRAM_ID,
-          toMint,
-          associatedTokenPubkey,
-          swapClient.program.provider.wallet.publicKey,
-          swapClient.program.provider.wallet.publicKey
-        )
-      );
-    }
-    if (!quoteWallet && !quoteMint.equals(toMint)) {
-      const quoteAssociatedPubkey = await Token.getAssociatedTokenAddress(
-        ASSOCIATED_TOKEN_PROGRAM_ID,
-        TOKEN_PROGRAM_ID,
-        quoteMint,
-        swapClient.program.provider.wallet.publicKey
-      );
-      tx.add(
-        Token.createAssociatedTokenAccountInstruction(
-          ASSOCIATED_TOKEN_PROGRAM_ID,
-          TOKEN_PROGRAM_ID,
-          quoteMint,
-          quoteAssociatedPubkey,
-          swapClient.program.provider.wallet.publicKey,
-          swapClient.program.provider.wallet.publicKey
-        )
-      );
-    }
-    if (fromMarket && !fromOpenOrders) {
-      const ooFrom = Keypair.generate();
-      signers.push(ooFrom);
-      tx.add(
-        await OpenOrders.makeCreateAccountTransaction(
-          swapClient.program.provider.connection,
-          fromMarket.address,
-          swapClient.program.provider.wallet.publicKey,
-          ooFrom.publicKey,
-          DEX_PID
-        )
-      );
-      tx.add(
-        swapClient.program.instruction.initAccount({
-          accounts: {
-            openOrders: ooFrom.publicKey,
-            authority: swapClient.program.provider.wallet.publicKey,
-            market: fromMarket.address,
-            dexProgram: DEX_PID,
-            rent: SYSVAR_RENT_PUBKEY,
-          },
-        })
-      );
-    }
-    if (toMarket && !toOpenOrders) {
-      const ooTo = Keypair.generate();
-      signers.push(ooTo);
-      tx.add(
-        await OpenOrders.makeCreateAccountTransaction(
-          swapClient.program.provider.connection,
-          toMarket.address,
-          swapClient.program.provider.wallet.publicKey,
-          ooTo.publicKey,
-          DEX_PID
-        )
-      );
-      tx.add(
-        swapClient.program.instruction.initAccount({
-          accounts: {
-            openOrders: ooTo.publicKey,
-            authority: swapClient.program.provider.wallet.publicKey,
-            market: toMarket.address,
-            dexProgram: DEX_PID,
-            rent: SYSVAR_RENT_PUBKEY,
-          },
-        })
-      );
-    }
-    await swapClient.program.provider.send(tx, signers)
-      .then(_ => {
-        setReloadAccounts(true)
-      });
-  };
-
-  const sendWrapSolTransaction = async () => {
-    if (!fromMintInfo || !toMintInfo) {
-      throw new Error("Unable to calculate mint decimals");
-    }
-    if (!quoteMint || !quoteMintInfo) {
-      throw new Error("Quote mint not found");
-    }
-    const amount = new u64(fromAmount * 10 ** fromMintInfo.decimals);
-
-    // If the user already has a wrapped SOL account, then we perform a
-    // transfer to the existing wrapped SOl account by
-    //
-    // * generating a new one
-    // * minting wrapped sol
-    // * sending tokens to the previously existing wrapped sol account
-    // * closing the newly created wrapped sol account
-    //
-    // If a wrapped SOL account doesn't exist, then we create an associated
-    // token account to mint the SOL and then leave it open.
-    //
-    const wrappedSolAccount = Keypair.generate()
-    const wrappedSolPubkey = wrappedSolAccount
-      ? wrappedSolAccount.publicKey
-      : await Token.getAssociatedTokenAddress(
-          ASSOCIATED_TOKEN_PROGRAM_ID,
-          TOKEN_PROGRAM_ID,
-          fromMint,
-          swapClient.program.provider.wallet.publicKey
-        );
-
-    // Wrap the SOL.
-    const { tx, signers } = await wrapSol(
-      swapClient.program.provider,
-      wrappedSolAccount,
-      fromMint,
-      amount
-    );
-
-    // Close the newly created account, if needed.
-    if (toWallet) {
-      tx.add(
-        Token.createTransferInstruction(
-          TOKEN_PROGRAM_ID,
-          wrappedSolPubkey,
-          toWallet.publicKey,
-          swapClient.program.provider.wallet.publicKey,
-          [],
-          amount
-        )
-      );
-      const { tx: unwrapTx, signers: unwrapSigners } = unwrapSol(
-        swapClient.program.provider,
-        wrappedSolAccount as Keypair
-      );
-      tx.add(unwrapTx);
-      signers.push(...unwrapSigners);
-    }
-    await swapClient.program.provider.send(tx, signers);
-  };
-
-  const sendUnwrapSolTransaction = async () => {
-    if (!fromMintInfo || !toMintInfo) {
-      throw new Error("Unable to calculate mint decimals");
-    }
-    if (!quoteMint || !quoteMintInfo) {
-      throw new Error("Quote mint not found");
-    }
-    const amount = new u64(fromAmount * 10 ** fromMintInfo.decimals);
-
-    // Unwrap *without* closing the existing wrapped account:
-    //
-    // * Create a new Wrapped SOL account.
-    // * Send wrapped tokens there.
-    // * Unwrap (i.e. close the newly created wrapped account).
-    const wrappedSolAccount = Keypair.generate();
-    const { tx, signers } = await wrapSol(
-      swapClient.program.provider,
-      wrappedSolAccount,
-      fromMint,
-      amount
-    );
-    tx.add(
-      Token.createTransferInstruction(
-        TOKEN_PROGRAM_ID,
-        fromWallet!.publicKey,
-        wrappedSolAccount.publicKey,
-        swapClient.program.provider.wallet.publicKey,
-        [],
-        amount
-      )
-    );
-    const { tx: unwrapTx, signers: unwrapSigners } = unwrapSol(
-      swapClient.program.provider,
-      wrappedSolAccount as Keypair
-    );
-    tx.add(unwrapTx);
-    signers.push(...unwrapSigners);
-
-    await swapClient.program.provider.send(tx, signers);
-  };
 
   // Click handler.
   const sendSwapTransaction = async () => {
@@ -708,7 +411,7 @@ export function SwapButton() {
         toWallet: toWalletAddr,
         quoteWallet: quoteWallet ? quoteWallet.publicKey : undefined,
         // Auto close newly created open orders accounts.
-        close: isClosingNewAccounts
+        close: isClosingNewAccounts,
       });
     })();
 
@@ -723,88 +426,22 @@ export function SwapButton() {
         fromMint,
         amount
       );
-
       const { tx: unwrapTx, signers: unwrapSigners } = unwrapSol(
         swapClient.program.provider,
         wrappedSolAccount as Keypair
       );
-
-      // const tx = new Transaction();
-      // tx.add(wrapTx);
-      // tx.add(txs[0].tx);
-      // tx.add(unwrapTx);
-      
-      // txs[0].tx = tx;
-
-      txs.unshift({ tx: wrapTx, signers: wrapSigners })
-      
-      txs[1].tx.add(unwrapTx)
-      txs[1].signers.push(...unwrapSigners)
-
-
-      // txs[0].signers.push(...wrapSigners);
-      // txs[0].signers.push(...unwrapSigners);
-
-      // txs.unshift({ tx: wrapTx, signers: wrapSigners })
-      // txs.push({ tx: unwrapTx, signers: unwrapSigners })
+      const tx = new Transaction();
+      tx.add(wrapTx);
+      tx.add(txs[0].tx);
+      tx.add(unwrapTx);
+      txs[0].tx = tx;
+      txs[0].signers.push(...wrapSigners);
+      txs[0].signers.push(...unwrapSigners);
     }
 
     await swapClient.program.provider.sendAll(txs);
   };
-
-  if (disconnected) {
-    return (
-      <Button
-        variant="contained"
-        className={styles.swapButton}
-        onClick={() => {
-          // @ts-ignore
-          swapClient.program.provider.wallet.connect();
-        }}
-      >
-        Connect wallet
-      </Button>
-    );
-  }
-  if (!isDexLoaded || !isTokensLoaded) {
-    return (
-      <Button
-        variant="contained"
-        className={styles.swapButton}
-        onClick={sendSwapTransaction}
-        disabled={true}
-      >
-        Swap
-      </Button>
-    );
-  }
-  return needsCreateAccounts ? (
-    <Button
-      variant="contained"
-      className={styles.swapButton}
-      onClick={sendCreateAccountsTransaction}
-    >
-      Create Accounts
-    </Button>
-  ) : isWrapSol ? (
-    <Button
-      variant="contained"
-      className={styles.swapButton}
-      onClick={sendWrapSolTransaction}
-      disabled={!canSwap}
-    >
-      Wrap SOL
-    </Button>
-  ) : isUnwrapSol ? (
-    <Button
-      variant="contained"
-      className={styles.swapButton}
-      onClick={sendUnwrapSolTransaction}
-      disabled={!canSwap}
-    >
-      Unwrap SOL
-    </Button>
-  ) : (
+  return (
     <Button
       variant="contained"
       className={styles.swapButton}
@@ -825,18 +462,17 @@ async function wrapSol(
   const tx = new Transaction();
   const signers = [wrappedSolAccount];
   // Create new, rent exempt account.
-  const createAccountInstruction = SystemProgram.createAccount({
-    fromPubkey: provider.wallet.publicKey,
-    newAccountPubkey: wrappedSolAccount.publicKey,
-    lamports: await Token.getMinBalanceRentForExemptAccount(
-      provider.connection
-    ),
-    space: 165,
-    programId: TOKEN_PROGRAM_ID,
-  })
-
-  tx.add(createAccountInstruction);
-
+  tx.add(
+    SystemProgram.createAccount({
+      fromPubkey: provider.wallet.publicKey,
+      newAccountPubkey: wrappedSolAccount.publicKey,
+      lamports: await Token.getMinBalanceRentForExemptAccount(
+        provider.connection
+      ),
+      space: 165,
+      programId: TOKEN_PROGRAM_ID,
+    })
+  );
   // Transfer lamports. These will be converted to an SPL balance by the
   // token program.
   if (fromMint.equals(SOL_MINT)) {

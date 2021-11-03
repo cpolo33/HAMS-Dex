@@ -11,6 +11,7 @@ import {
   FormControlLabel,
   FormGroup,
 } from "@material-ui/core";
+import { SettingsOutlined as Settings } from "@material-ui/icons";
 import PopupState, { bindTrigger, bindPopover } from "material-ui-popup-state";
 import { useSwapContext, useSwapFair } from "../context/Swap";
 import { useDexContext } from "../context/Dex";
@@ -23,23 +24,23 @@ const useStyles = makeStyles((theme) => ({
   table: {},
   settingsButton: {
     padding: 0,
-    color: "#FF810A",
-    background: "url(/icons/settings.svg) center no-repeat",
-    width: 24,
-    height: 24,
+    color: theme.palette.primary.main,
   },
   closeAccountSwitchLabel: {
     color: theme.palette.text.secondary,
   },
   fairAutoSelected: {
-    backgroundColor: "#FF810A",
+    backgroundColor: theme.palette.primary.main,
     padding: "3px 5px",
     borderRadius: "10px",
     color: theme.palette.primary.contrastText,
     fontWeight: 700,
   },
   fairAuto: {
-    backgroundColor: "#FF810A",
+    backgroundColor:
+      theme.palette.type === "dark"
+        ? theme.palette.secondary.light
+        : theme.palette.secondary.main,
     padding: "3px 5px",
     borderRadius: "10px",
     boxShadow: "none",
@@ -48,21 +49,19 @@ const useStyles = makeStyles((theme) => ({
 
 export function SettingsButton() {
   const styles = useStyles();
-  const { slippage } = useSwapContext();
 
   return (
     <PopupState variant="popover">
       {
         //@ts-ignore
         (popupState) => (
-          <div style={{ display: "flex" }}>
-            <div style={{ background: "#121616", padding: "0 5px", borderRadius: 4, marginRight: 16, fontSize: 14 }}>
-              {slippage}%
-            </div>
+          <div>
             <IconButton
               {...bindTrigger(popupState)}
               className={styles.settingsButton}
-            />
+            >
+              <Settings />
+            </IconButton>
             <Popover
               {...bindPopover(popupState)}
               anchorOrigin={{

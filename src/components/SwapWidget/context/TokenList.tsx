@@ -1,7 +1,6 @@
 import React, { useContext, useMemo } from "react";
 import { TokenInfo } from "@solana/spl-token-registry";
 import { SOL_MINT } from "../utils/pubkeys";
-import { WRAPPED_SOL_MINT } from "@project-serum/serum/lib/token-instructions";
 
 type TokenListContext = {
   tokenMap: Map<string, TokenInfo>;
@@ -39,16 +38,7 @@ const SOL_TOKEN_INFO = {
 
 export function TokenListContextProvider(props: any) {
   const tokenList = useMemo(() => {
-    const list = props.tokenList
-      .filterByClusterSlug("mainnet-beta")
-      .getList()
-      .map((t: TokenInfo) => {
-        if (t.address === WRAPPED_SOL_MINT.toString()) {
-          // @ts-ignore
-          t.symbol = "wSOL";
-        }
-        return t;
-      });
+    const list = props.tokenList.filterByClusterSlug("mainnet-beta").getList();
     // Manually add a fake SOL mint for the native token. The component is
     // opinionated in that it distinguishes between wrapped SOL and SOL.
     list.push(SOL_TOKEN_INFO);
