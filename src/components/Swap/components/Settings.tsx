@@ -12,7 +12,7 @@ import {
 } from "@material-ui/core";
 import { SettingsOutlined as Settings } from "@material-ui/icons";
 import PopupState, { bindPopover, bindTrigger } from "material-ui-popup-state";
-import { useState } from "react";
+import React, { useState } from "react";
 import { useDexContext } from "../context/Dex";
 import { useSwapContext, useSwapFair } from "../context/Swap";
 import OpenOrdersDialog from "./OpenOrdersDialog";

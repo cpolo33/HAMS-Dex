@@ -34,7 +34,7 @@ import {
   Transaction,
   TransactionInstruction,
 } from "@solana/web3.js";
-import { useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   FEE_MULTIPLIER,
   useDexContext,

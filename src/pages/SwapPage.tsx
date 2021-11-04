@@ -1,0 +1,188 @@
+import React, { useState, useEffect, useMemo } from "react";
+import { useSnackbar } from "notistack";
+import { Button, Grid, makeStyles } from "@material-ui/core";
+import { Provider } from "@project-serum/anchor";
+// @ts-ignore
+import Wallet from "@project-serum/sol-wallet-adapter";
+import {
+  PublicKey,
+  Signer,
+  ConfirmOptions,
+  Connection,
+  Transaction,
+  TransactionSignature,
+} from "@solana/web3.js";
+import {
+  TokenListContainer,
+  TokenListProvider,
+} from "@solana/spl-token-registry";
+import Swap from "@project-serum/swap-ui";
+
+const useStyles = makeStyles((theme) => ({
+  root: {
+    minHeight: "100vh",
+    paddingLeft: theme.spacing(1),
+    paddingRight: theme.spacing(1),
+  },
+}));
+
+export default function SwapPage() {
+  const styles = useStyles();
+  const { enqueueSnackbar } = useSnackbar();
+  const [isConnected, setIsConnected] = useState(false);
+  const [tokenList, setTokenList] = useState<TokenListContainer | null>(null);
+
+  let commonBases: PublicKey[] = [
+    new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"),
+    new PublicKey("Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"),
+    new PublicKey("So11111111111111111111111111111111111111112"),
+    new PublicKey("SRMuApVNdxXokk5GT7XD5cUUgXMBCoAz2LHeuAoKWRt"),
+  ];
+
+  const [provider, wallet] = useMemo(() => {
+    const opts: ConfirmOptions = {
+      preflightCommitment: "recent",
+      commitment: "recent",
+    };
+    const network = "https://dawn-red-log.solana-mainnet.quiknode.pro/ff88020a7deb8e7d855ad7c5125f489ef1e9db71/";
+    const wallet = new Wallet("https://www.sollet.io", network);
+    const connection = new Connection(network, opts.preflightCommitment);
+    const provider = new NotifyingProvider(
+      connection,
+      wallet,
+      opts,
+      (tx, err) => {
+        if (err) {
+          enqueueSnackbar(`Error: ${err.toString()}`, {
+            variant: "error",
+          });
+        } else {
+          enqueueSnackbar("Transaction sent", {
+            variant: "success",
+            action: (
+              <Button
+                color="inherit"
+                component="a"
+                target="_blank"
+                rel="noopener"
+                href={`https://explorer.solana.com/tx/${tx}`}
+              >
+                View on Solana Explorer
+              </Button>
+            ),
+          });
+        }
+      }
+    );
+    return [provider, wallet];
+  }, [enqueueSnackbar]);
+
+  useEffect(() => {
+    new TokenListProvider().resolve().then(setTokenList);
+  }, [setTokenList]);
+
+  // Connect to the wallet.
+  useEffect(() => {
+    wallet.on("connect", () => {
+      enqueueSnackbar("Wallet connected", { variant: "success" });
+      setIsConnected(true);
+    });
+    wallet.on("disconnect", () => {
+      enqueueSnackbar("Wallet disconnected", { variant: "info" });
+      setIsConnected(false);
+    });
+  }, [wallet, enqueueSnackbar]);
+  const ref = new PublicKey("9KiLNBHcDrqYtoRF8tVYZ98hgwNcPgLz8xoRMXwqLQ6Z");
+  return (
+    <Grid
+      container
+      justifyContent="center"
+      alignItems="center"
+      className={styles.root}
+    >
+      <Button
+        variant="outlined"
+        onClick={() => (!isConnected ? wallet.connect() : wallet.disconnect())}
+        style={{ position: "fixed", right: 24, top: 24 }}
+      >
+        {!isConnected ? "Connect" : "Disconnect"}
+      </Button>
+      {tokenList && (
+        <Swap
+          provider={provider}
+          tokenList={tokenList}
+          commonBases={commonBases}
+          referral={ref}
+          connectWalletCallback={() => wallet.connect()}
+        />
+      )}
+    </Grid>
+  );
+}
+
+// Cast wallet to AnchorWallet in order to be compatible with Anchor's Provider class
+interface AnchorWallet {
+  signTransaction(tx: Transaction): Promise<Transaction>;
+  signAllTransactions(txs: Transaction[]): Promise<Transaction[]>;
+  publicKey: PublicKey;
+}
+
+// Custom provider to display notifications whenever a transaction is sent.
+//
+// Note that this is an Anchor wallet/network provider--not a React provider,
+// so all transactions will be flowing through here, which allows us to
+// hook in to display all transactions sent from the `Swap` component
+// as notifications in the parent app.
+class NotifyingProvider extends Provider {
+  // Function to call whenever the provider sends a transaction;
+  private onTransaction: (
+    tx: TransactionSignature | undefined,
+    err?: Error
+  ) => void;
+
+  constructor(
+    connection: Connection,
+    wallet: Wallet,
+    opts: ConfirmOptions,
+    onTransaction: (tx: TransactionSignature | undefined, err?: Error) => void
+  ) {
+    const newWallet = wallet as AnchorWallet;
+    super(connection, newWallet, opts);
+    this.onTransaction = onTransaction;
+  }
+
+  async send(
+    tx: Transaction,
+    signers?: Array<Signer | undefined>,
+    opts?: ConfirmOptions
+  ): Promise<TransactionSignature> {
+    try {
+      const txSig = await super.send(tx, signers, opts);
+      this.onTransaction(txSig);
+      return txSig;
+    } catch (err) {
+      if (err instanceof Error || err === undefined) {
+        this.onTransaction(undefined, err);
+      }
+      return "";
+    }
+  }
+
+  async sendAll(
+    txs: Array<{ tx: Transaction; signers: Array<Signer | undefined> }>,
+    opts?: ConfirmOptions
+  ): Promise<Array<TransactionSignature>> {
+    try {
+      const txSigs = await super.sendAll(txs, opts);
+      txSigs.forEach((sig) => {
+        this.onTransaction(sig);
+      });
+      return txSigs;
+    } catch (err) {
+      if (err instanceof Error || err === undefined) {
+        this.onTransaction(undefined, err);
+      }
+      return [];
+    }
+  }
+}

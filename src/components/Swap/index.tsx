@@ -7,7 +7,7 @@ import { Provider } from "@project-serum/anchor";
 import { Swap as SwapClient } from "@project-serum/swap";
 import { TokenListContainer } from "@solana/spl-token-registry";
 import { PublicKey } from "@solana/web3.js";
-import { ReactElement } from "react";
+import React, { ReactElement } from "react";
 import SwapCard, {
   ArrowButton,
   SwapButton,

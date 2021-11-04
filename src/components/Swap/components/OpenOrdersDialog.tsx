@@ -25,7 +25,7 @@ import { BN } from "@project-serum/anchor";
 import { OpenOrders } from "@project-serum/serum";
 import { MintInfo } from "@solana/spl-token";
 import { PublicKey } from "@solana/web3.js";
-import { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   useDexContext,
   useMarket,

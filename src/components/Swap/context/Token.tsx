@@ -227,5 +227,6 @@ export function setMintCache(pk: PublicKey, account: MintInfo) {
 // A mint is added for each new token opened
 // @ts-ignore
 const _MINT_CACHE = new Map<string, Promise<MintInfo>>([
+   // @ts-ignore
   [SOL_MINT.toString(), { decimals: 9 }],
 ]);
