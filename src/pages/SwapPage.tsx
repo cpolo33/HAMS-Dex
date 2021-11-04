@@ -1,9 +1,12 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { useSnackbar } from "notistack";
 import { Button, Grid, makeStyles } from "@material-ui/core";
 import { Provider } from "@project-serum/anchor";
+import { useSnackbar } from "notistack";
+import { TOKEN_MINTS } from '../utils/tokensAndMarkets';
 // @ts-ignore
 import Wallet from "@project-serum/sol-wallet-adapter";
+import { WalletAdapter } from '../wallet-adapters';
+import { useWallet } from "../utils/wallet";
 import {
   Signer,
   ConfirmOptions,
@@ -29,19 +32,23 @@ const useStyles = makeStyles((theme) => ({
 export default function SwapPage() {
   const styles = useStyles();
   const { enqueueSnackbar } = useSnackbar();
-  const [isConnected, setIsConnected] = useState(false);
   const [tokenList, setTokenList] = useState<TokenListContainer | null>(null);
+  let { wallet, connected } = useWallet();
 
-  const [provider, wallet] = useMemo(() => {
+  const network = "https://solape.genesysgo.net";
+  if (!wallet) {
+    wallet = new Wallet("https://www.sollet.io", network);
+  }
+
+  const [provider] = useMemo(() => {
     const opts: ConfirmOptions = {
       preflightCommitment: "recent",
       commitment: "recent",
     };
-    const network = "https://solana-api.projectserum.com";
-    const wallet = new Wallet("https://www.sollet.io", network);
     const connection = new Connection(network, opts.preflightCommitment);
     const provider = new NotifyingProvider(
       connection,
+      // @ts-ignore
       wallet,
       opts,
       (tx, err) => {
@@ -67,25 +74,27 @@ export default function SwapPage() {
         }
       }
     );
-    return [provider, wallet];
-  }, [enqueueSnackbar]);
+    return [provider];
+  }, [enqueueSnackbar, wallet]);
+
+  const sol = new PublicKey("Ejmc1UB4EsES5oAaRN63SpoxMJidt3ZGBrqrZk49vjTZ");
+  const ref = new PublicKey("ACh19FwGBEQfnJQPF9hxf4htc2MENexiYZDw8A54JNtG");
+  const usdc = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
 
   useEffect(() => {
-    new TokenListProvider().resolve().then(setTokenList);
+    const solapeTokens = {}
+    TOKEN_MINTS.forEach(t => {
+      solapeTokens[t.name] = true
+    })
+
+    // Only show SolApe supported tokens
+    new TokenListProvider().resolve().then((tokenList) => {
+      const filteredList = tokenList.getList().filter(t => solapeTokens[t.symbol] && t.chainId === 101)
+      setTokenList(new TokenListContainer(filteredList))
+    });
+
   }, [setTokenList]);
 
-  // Connect to the wallet.
-  useEffect(() => {
-    wallet.on("connect", () => {
-      enqueueSnackbar("Wallet connected", { variant: "success" });
-      setIsConnected(true);
-    });
-    wallet.on("disconnect", () => {
-      enqueueSnackbar("Wallet disconnected", { variant: "info" });
-      setIsConnected(false);
-    });
-  }, [wallet, enqueueSnackbar]);
-  const ref = new PublicKey("ACh19FwGBEQfnJQPF9hxf4htc2MENexiYZDw8A54JNtG");
   return (
     <Grid
       container
@@ -93,23 +102,16 @@ export default function SwapPage() {
       alignItems="center"
       className={styles.root}
     >
-      <Button
-        variant="outlined"
-        onClick={() => (!isConnected ? wallet.connect() : wallet.disconnect())}
-        style={{ position: "fixed", right: 24, top: 24 }}
-      >
-        {!isConnected ? "Connect" : "Disconnect"}
-      </Button>
-      {tokenList && <Swap provider={provider} tokenList={tokenList} referral={ref} />}
+        {tokenList &&
+          <Swap 
+            referral={ref} 
+            toMint={sol} 
+            fromMint={usdc}
+            provider={provider} 
+            tokenList={tokenList} />
+        }
     </Grid>
   );
-}
-
-// Cast wallet to AnchorWallet in order to be compatible with Anchor's Provider class
-interface AnchorWallet {
-  signTransaction(tx: Transaction): Promise<Transaction>;
-  signAllTransactions(txs: Transaction[]): Promise<Transaction[]>;
-  publicKey: PublicKey;
 }
 
 // Custom provider to display notifications whenever a transaction is sent.
@@ -127,12 +129,11 @@ class NotifyingProvider extends Provider {
 
   constructor(
     connection: Connection,
-    wallet: Wallet,
+    wallet: Wallet | WalletAdapter,
     opts: ConfirmOptions,
     onTransaction: (tx: TransactionSignature | undefined, err?: Error) => void
   ) {
-    const newWallet = wallet as AnchorWallet;
-    super(connection, newWallet, opts);
+    super(connection, wallet, opts);
     this.onTransaction = onTransaction;
   }
 
