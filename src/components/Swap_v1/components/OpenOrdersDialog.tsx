@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { PublicKey } from "@solana/web3.js";
 import { MintInfo } from "@solana/spl-token";
 import { BN } from "@project-serum/anchor";

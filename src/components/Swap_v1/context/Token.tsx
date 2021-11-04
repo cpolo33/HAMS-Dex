@@ -201,7 +201,7 @@ const _OWNED_TOKEN_ACCOUNTS_CACHE: Array<{
 }> = [];
 
 // Cache storing all previously fetched mint infos.
+// @ts-ignore
 const _MINT_CACHE = new Map<string, Promise<MintInfo>>([
-  // @ts-ignore
   [SOL_MINT.toString(), { decimals: 9 }],
 ]);
