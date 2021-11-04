@@ -180,6 +180,9 @@ export default function TopBar() {
             <Menu.Item key="https://app.step.finance/#/dashboard" style={{ margin: '0 0 0 20px', color: '#2abdd2', fontWeight: 'normal' }}>
               <a href="https://app.step.finance/#/dashboard" target="_blank" rel="noopener noreferrer">DASHBOARD</a>
             </Menu.Item>
+            {/*
+            <Tag color="green">v2.0</Tag>
+            */}
           </Menu>
           <div>
             <Row
