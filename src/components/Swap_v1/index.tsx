@@ -1,13 +1,26 @@
+import { ReactElement } from "react";
+import { PublicKey } from "@solana/web3.js";
+import { TokenListContainer } from "@solana/spl-token-registry";
+import { Provider } from "@project-serum/anchor";
+import { Swap as SwapClient } from "@project-serum/swap";
 import {
-  createTheme,
+  createMuiTheme,
   ThemeOptions,
   ThemeProvider,
 } from "@material-ui/core/styles";
-import { Provider } from "@project-serum/anchor";
-import { Swap as SwapClient } from "@project-serum/swap";
-import { TokenListContainer } from "@solana/spl-token-registry";
-import { PublicKey } from "@solana/web3.js";
-import { ReactElement } from "react";
+import {
+  SwapContextProvider,
+  useSwapContext,
+  useSwapFair,
+} from "./context/Swap";
+import {
+  DexContextProvider,
+  useBbo,
+  useFairRoute,
+  useMarketName,
+} from "./context/Dex";
+import { TokenListContextProvider, useTokenMap } from "./context/TokenList";
+import { TokenContextProvider, useMint } from "./context/Token";
 import SwapCard, {
   ArrowButton,
   SwapButton,
@@ -15,19 +28,6 @@ import SwapCard, {
   SwapTokenForm,
 } from "./components/Swap";
 import TokenDialog from "./components/TokenDialog";
-import {
-  DexContextProvider,
-  useBbo,
-  useFairRoute,
-  useMarketName,
-} from "./context/Dex";
-import {
-  SwapContextProvider,
-  useSwapContext,
-  useSwapFair,
-} from "./context/Swap";
-import { TokenContextProvider, useMint } from "./context/Token";
-import { TokenListContextProvider, useTokenMap } from "./context/TokenList";
 
 /**
  * A`Swap` component that can be embedded into applications. To use,
@@ -49,12 +49,9 @@ export default function Swap(props: SwapProps): ReactElement {
     containerStyle,
     contentStyle,
     swapTokenContainerStyle,
-    swapButtonStyle,
-    connectWalletCallback,
     materialTheme,
     provider,
     tokenList,
-    commonBases,
     fromMint,
     toMint,
     fromAmount,
@@ -64,10 +61,9 @@ export default function Swap(props: SwapProps): ReactElement {
 
   // @ts-ignore
   const swapClient = new SwapClient(provider, tokenList);
-  const theme = createTheme(
+  const theme = createMuiTheme(
     materialTheme || {
       palette: {
-        // type: "dark",
         primary: {
           main: "#2196F3",
           contrastText: "#FFFFFF",
@@ -84,11 +80,7 @@ export default function Swap(props: SwapProps): ReactElement {
   );
   return (
     <ThemeProvider theme={theme}>
-      <TokenListContextProvider
-        tokenList={tokenList}
-        commonBases={commonBases}
-        provider={provider}
-      >
+      <TokenListContextProvider tokenList={tokenList}>
         <TokenContextProvider provider={provider}>
           <DexContextProvider swapClient={swapClient}>
             <SwapContextProvider
@@ -102,8 +94,6 @@ export default function Swap(props: SwapProps): ReactElement {
                 containerStyle={containerStyle}
                 contentStyle={contentStyle}
                 swapTokenContainerStyle={swapTokenContainerStyle}
-                swapButtonStyle={swapButtonStyle}
-                connectWalletCallback={connectWalletCallback}
               />
             </SwapContextProvider>
           </DexContextProvider>
@@ -127,11 +117,6 @@ export type SwapProps = {
    * Token list providing information for tokens used.
    */
   tokenList: TokenListContainer;
-
-  /**
-   * List of token address that should show up as common base tokens
-   */
-  commonBases?: PublicKey[];
 
   /**
    * Wallet address to which referral fees are sent (i.e. a SOL address).
@@ -182,17 +167,10 @@ export type SwapProps = {
    * Styling properties for the from and to token containers.
    */
   swapTokenContainerStyle?: any;
-  /**
-   * Styling properties for the Swap Button.
-   */
-  swapButtonStyle?: any;
-  /**
-   * Callback for wallet connection
-   */
-  connectWalletCallback?: any;
 };
 
 export {
+  // Components.
   Swap,
   SwapCard,
   SwapHeader,

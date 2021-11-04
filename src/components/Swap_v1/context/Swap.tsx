@@ -8,27 +8,17 @@ import {
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
 import { Market } from "@project-serum/serum";
-import {
-  SRM_MINT,
-  USDC_MINT,
-  USDT_MINT,
-  SOL_MINT,
-  WRAPPED_SOL_MINT,
-  SOLLET_USDT_MINT,
-  SOLLET_USDC_MINT,
-} from "../utils/pubkeys";
+import { SRM_MINT, USDC_MINT, USDT_MINT } from "../utils/pubkeys";
 import {
   useFairRoute,
   useRouteVerbose,
   useDexContext,
   FEE_MULTIPLIER,
-  useBbo,
 } from "./Dex";
 import {
   useTokenListContext,
   SPL_REGISTRY_SOLLET_TAG,
   SPL_REGISTRY_WORM_TAG,
-  useTokenMap,
 } from "./TokenList";
 import { useOwnedTokenAccount } from "../context/Token";
 
@@ -82,13 +72,6 @@ export type SwapContext = {
   setIsStrict: (isStrict: boolean) => void;
 
   setIsClosingNewAccounts: (b: boolean) => void;
-
-  // A button state to reverse denominator of prices. Eg. if swap show
-  // price of SOL/USDC, then show USDC/SOL price when reverse is true.
-  showReversePrices: boolean;
-  setShowReversePrices: (
-    b: boolean | ((prevState: boolean) => boolean)
-  ) => void;
 };
 const _SwapContext = React.createContext<null | SwapContext>(null);
 
@@ -97,15 +80,12 @@ export function SwapContextProvider(props: any) {
   const [toMint, setToMint] = useState(props.toMint ?? USDC_MINT);
   const [fromAmount, _setFromAmount] = useState(props.fromAmount ?? 0);
   const [toAmount, _setToAmount] = useState(props.toAmount ?? 0);
-  const [showReversePrices, setShowReversePrices] = useState(false);
   const [isClosingNewAccounts, setIsClosingNewAccounts] = useState(false);
   const [isStrict, setIsStrict] = useState(false);
   const [slippage, setSlippage] = useState(DEFAULT_SLIPPAGE_PERCENT);
   const [fairOverride, setFairOverride] = useState<number | null>(null);
-  const { isWrapUnwrap } = useIsWrapSol(fromMint, toMint);
   const fair = _useSwapFair(fromMint, toMint, fairOverride);
   const referral = props.referral;
-  const feeMultiplier = isWrapUnwrap ? 1 : FEE_MULTIPLIER;
 
   assert.ok(slippage >= 0);
 
@@ -132,7 +112,7 @@ export function SwapContextProvider(props: any) {
       return;
     }
     _setFromAmount(amount);
-    _setToAmount(feeMultiplier * (amount / fair));
+    _setToAmount(FEE_MULTIPLIER * (amount / fair));
   };
 
   const setToAmount = (amount: number) => {
@@ -166,8 +146,6 @@ export function SwapContextProvider(props: any) {
         setIsStrict,
         setIsClosingNewAccounts,
         referral,
-        showReversePrices,
-        setShowReversePrices,
       }}
     >
       {props.children}
@@ -188,161 +166,14 @@ export function useSwapFair(): number | undefined {
   return _useSwapFair(fromMint, toMint, fairOverride);
 }
 
-// get reverse price for pair  (diff fn to prevent side-effects)
-export function getSwapFair(reversed: boolean = false): number | undefined {
-  const { fairOverride, fromMint, toMint } = useSwapContext();
-  return reversed
-    ? _useSwapFair(toMint, fromMint, fairOverride)
-    : _useSwapFair(fromMint, toMint, fairOverride);
-}
-
 function _useSwapFair(
   fromMint: PublicKey,
   toMint: PublicKey,
   fairOverride: number | null
 ): number | undefined {
-  const { isWrapUnwrap } = useIsWrapSol(fromMint, toMint);
   const fairRoute = useFairRoute(fromMint, toMint);
   const fair = fairOverride === null ? fairRoute : fairOverride;
-
-  if (isWrapUnwrap) {
-    return 1;
-  }
   return fair;
-}
-
-export function useIsWrapSol(
-  fromMint: PublicKey,
-  toMint: PublicKey
-): {
-  isWrapSol: boolean;
-  isUnwrapSol: boolean;
-  isWrapUnwrap: boolean;
-} {
-  const isWrapSol =
-    fromMint.equals(SOL_MINT) && toMint.equals(WRAPPED_SOL_MINT);
-  const isUnwrapSol =
-    fromMint.equals(WRAPPED_SOL_MINT) && toMint.equals(SOL_MINT);
-  const isWrapUnwrap = isWrapSol || isUnwrapSol;
-  return {
-    isWrapSol,
-    isUnwrapSol,
-    isWrapUnwrap,
-  };
-}
-
-// Returns true if the user can create accounts with the current context.
-export function useCanCreateAccounts(): boolean {
-  const { fromMint, toMint } = useSwapContext();
-  const { swapClient } = useDexContext();
-  const { wormholeMap, solletMap } = useTokenListContext();
-  const fromWallet = useOwnedTokenAccount(fromMint);
-  const fair = useSwapFair();
-  const route = useRouteVerbose(fromMint, toMint);
-
-  if (route === null) {
-    return false;
-  }
-
-  return (
-    // From wallet exists.
-    fromWallet !== undefined &&
-    fromWallet !== null &&
-    // Fair price is defined.
-    fair !== undefined &&
-    fair > 0 &&
-    // Mints are distinct.
-    fromMint.equals(toMint) === false &&
-    // Wallet is connected.
-    swapClient.program.provider.wallet.publicKey !== null &&
-    // Trade route exists.
-    route !== null &&
-    // Wormhole <-> native markets must have the wormhole token as the
-    // *from* address since they're one-sided markets.
-    (route.kind !== "wormhole-native" ||
-      wormholeMap
-        .get(fromMint.toString())
-        ?.tags?.includes(SPL_REGISTRY_WORM_TAG) !== undefined) &&
-    // Wormhole <-> sollet markets must have the sollet token as the
-    // *from* address since they're one sided markets.
-    (route.kind !== "wormhole-sollet" ||
-      solletMap
-        .get(fromMint.toString())
-        ?.tags?.includes(SPL_REGISTRY_SOLLET_TAG) !== undefined)
-  );
-}
-
-export function useCanWrapOrUnwrap(): boolean {
-  const { fromMint, fromAmount, toAmount } = useSwapContext();
-  const { swapClient } = useDexContext();
-  const fromWallet = useOwnedTokenAccount(fromMint);
-
-  return (
-    // From wallet exists.
-    fromWallet !== undefined &&
-    fromWallet !== null &&
-    // Wallet is connected.
-    swapClient.program.provider.wallet.publicKey !== null &&
-    // Trade amounts greater than zero.
-    fromAmount > 0 &&
-    toAmount > 0
-  );
-}
-
-export function useIsUnwrapSollet(
-  fromMint: PublicKey,
-  toMint: PublicKey
-): boolean {
-  return (
-    (fromMint.equals(SOLLET_USDT_MINT) && toMint.equals(USDT_MINT)) ||
-    (fromMint.equals(SOLLET_USDC_MINT) && toMint.equals(USDC_MINT))
-  );
-}
-
-function getMinSwapMessage(minAmount: number, symbol: string) {
-  if (symbol === "wSOL") {
-    symbol = "SOL";
-  }
-  return minAmount + " " + symbol;
-}
-
-// Return string message if trade amount is below minimum swap amount
-export function useMinSwapAmount(fromMarket?: Market, toMarket?: Market) {
-  const { fromMint, fromAmount, toAmount } = useSwapContext();
-  const fromMarketBbo = useBbo(fromMarket?.publicKey);
-  const toMarketMidBbo = useBbo(toMarket?.publicKey);
-  const tokenMap = useTokenMap();
-
-  if (!fromMarket) {
-    return undefined;
-  }
-  const fromMarketIsBid = fromMarket.quoteMintAddress.equals(fromMint);
-  const fromMarketMinSize = fromMarket.minOrderSize;
-  const fromMarketBaseAmount = fromMarketIsBid ? toAmount : fromAmount;
-  const belowFromMarketMinSize = fromMarketBaseAmount < fromMarketMinSize;
-
-  if (!toMarket && belowFromMarketMinSize) {
-    let tokenSymbol =
-      tokenMap.get(fromMarket!.baseMintAddress.toString())?.symbol ?? "unknown";
-    return getMinSwapMessage(fromMarketMinSize, tokenSymbol);
-  } else if (toMarket) {
-    const toMarketMinSize = toMarket.minOrderSize;
-    const belowToMarketMinSize = toAmount < toMarketMinSize;
-    if (belowToMarketMinSize || belowFromMarketMinSize) {
-      const fromTokenWorth = fromMarketMinSize * (fromMarketBbo?.bestBid ?? 0);
-      const toTokenWorth = toMarketMinSize * (toMarketMidBbo?.bestBid ?? 0);
-      const higherMinSizeWorthMarket =
-        fromTokenWorth > toTokenWorth ? fromMarket : toMarket;
-      const tokenSymbol =
-        tokenMap.get(higherMinSizeWorthMarket!.baseMintAddress.toString())
-          ?.symbol ?? "unknown";
-
-      return getMinSwapMessage(
-        higherMinSizeWorthMarket.minOrderSize,
-        tokenSymbol
-      );
-    }
-  }
 }
 
 // Returns true if the user can swap with the current context.
@@ -353,7 +184,6 @@ export function useCanSwap(): boolean {
   const fromWallet = useOwnedTokenAccount(fromMint);
   const fair = useSwapFair();
   const route = useRouteVerbose(fromMint, toMint);
-
   if (route === null) {
     return false;
   }

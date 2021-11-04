@@ -5,18 +5,18 @@ import { Provider } from "@project-serum/anchor";
 // @ts-ignore
 import Wallet from "@project-serum/sol-wallet-adapter";
 import {
-  PublicKey,
   Signer,
   ConfirmOptions,
   Connection,
   Transaction,
   TransactionSignature,
+  PublicKey,
 } from "@solana/web3.js";
 import {
   TokenListContainer,
   TokenListProvider,
 } from "@solana/spl-token-registry";
-import Swap from "../components/Swap";
+import Swap from "../components/Swap_v1";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -32,19 +32,12 @@ export default function SwapPage() {
   const [isConnected, setIsConnected] = useState(false);
   const [tokenList, setTokenList] = useState<TokenListContainer | null>(null);
 
-  let commonBases: PublicKey[] = [
-    new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"),
-    new PublicKey("Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"),
-    new PublicKey("So11111111111111111111111111111111111111112"),
-    new PublicKey("SRMuApVNdxXokk5GT7XD5cUUgXMBCoAz2LHeuAoKWRt"),
-  ];
-
   const [provider, wallet] = useMemo(() => {
     const opts: ConfirmOptions = {
       preflightCommitment: "recent",
       commitment: "recent",
     };
-    const network = "https://dawn-red-log.solana-mainnet.quiknode.pro/ff88020a7deb8e7d855ad7c5125f489ef1e9db71/";
+    const network = "https://solana-api.projectserum.com";
     const wallet = new Wallet("https://www.sollet.io", network);
     const connection = new Connection(network, opts.preflightCommitment);
     const provider = new NotifyingProvider(
@@ -92,11 +85,11 @@ export default function SwapPage() {
       setIsConnected(false);
     });
   }, [wallet, enqueueSnackbar]);
-  const ref = new PublicKey("9KiLNBHcDrqYtoRF8tVYZ98hgwNcPgLz8xoRMXwqLQ6Z");
+  const ref = new PublicKey("ACh19FwGBEQfnJQPF9hxf4htc2MENexiYZDw8A54JNtG");
   return (
     <Grid
       container
-      justifyContent="center"
+      justify="center"
       alignItems="center"
       className={styles.root}
     >
@@ -107,15 +100,7 @@ export default function SwapPage() {
       >
         {!isConnected ? "Connect" : "Disconnect"}
       </Button>
-      {tokenList && (
-        <Swap
-          provider={provider}
-          tokenList={tokenList}
-          commonBases={commonBases}
-          referral={ref}
-          connectWalletCallback={() => wallet.connect()}
-        />
-      )}
+      {tokenList && <Swap provider={provider} tokenList={tokenList} referral={ref} />}
     </Grid>
   );
 }

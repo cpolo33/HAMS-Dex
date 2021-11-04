@@ -1,20 +1,20 @@
+import React, { useState } from "react";
 import {
-  Button,
-  FormControlLabel,
-  FormGroup,
-  IconButton,
-  InputAdornment,
   makeStyles,
   Popover,
-  Switch,
-  TextField,
+  IconButton,
   Typography,
+  Button,
+  TextField,
+  InputAdornment,
+  Switch,
+  FormControlLabel,
+  FormGroup,
 } from "@material-ui/core";
 import { SettingsOutlined as Settings } from "@material-ui/icons";
-import PopupState, { bindPopover, bindTrigger } from "material-ui-popup-state";
-import { useState } from "react";
-import { useDexContext } from "../context/Dex";
+import PopupState, { bindTrigger, bindPopover } from "material-ui-popup-state";
 import { useSwapContext, useSwapFair } from "../context/Swap";
+import { useDexContext } from "../context/Dex";
 import OpenOrdersDialog from "./OpenOrdersDialog";
 
 const useStyles = makeStyles((theme) => ({
@@ -24,11 +24,7 @@ const useStyles = makeStyles((theme) => ({
   table: {},
   settingsButton: {
     padding: 0,
-    marginBottom: "4px",
-    "& *": {
-      fontSize: theme.spacing(2),
-    },
-    // color: theme.palette.primary.main,
+    color: theme.palette.primary.main,
   },
   closeAccountSwitchLabel: {
     color: theme.palette.text.secondary,
@@ -69,18 +65,17 @@ export function SettingsButton() {
             <Popover
               {...bindPopover(popupState)}
               anchorOrigin={{
-                vertical: "top",
-                horizontal: "center",
+                vertical: "bottom",
+                horizontal: "left",
               }}
               transformOrigin={{
-                vertical: "bottom",
-                horizontal: "center",
+                vertical: "top",
+                horizontal: "right",
               }}
               PaperProps={{
                 style: {
-                  borderRadius: "0.5rem",
+                  borderRadius: "10px",
                   boxShadow: "0px 0px 30px 5px rgba(0,0,0,0.075)",
-                  marginTop: "-0.5rem"
                 },
               }}
             >
@@ -176,14 +171,12 @@ function SettingsDetails() {
           <CloseNewAccountsSwitch />
         </div>
         <Button
-          style={{ textTransform: "none" }}
-          variant="outlined"
-          color="primary"
+          variant="contained"
           fullWidth
           disabled={swapClient.program.provider.wallet.publicKey === null}
           onClick={() => setShowSettingsDialog(true)}
         >
-          Manage DEX Accounts
+          Manage Dex Accounts
         </Button>
       </div>
       <OpenOrdersDialog

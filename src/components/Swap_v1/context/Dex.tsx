@@ -2,7 +2,7 @@ import React, { useContext, useState, useEffect } from "react";
 import * as assert from "assert";
 import { useAsync } from "react-async-hook";
 import { TokenInfo } from "@solana/spl-token-registry";
-import { MintLayout, TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import { MintLayout } from "@solana/spl-token";
 import { Connection, PublicKey } from "@solana/web3.js";
 import * as anchor from "@project-serum/anchor";
 import { Swap as SwapClient } from "@project-serum/swap";
@@ -26,7 +26,6 @@ import {
 import { useTokenMap, useTokenListContext } from "./TokenList";
 import { fetchSolletInfo, requestWormholeSwapMarketIfNeeded } from "./Sollet";
 import { setMintCache } from "./Token";
-import { useSwapContext, useIsWrapSol } from "./Swap";
 
 const BASE_TAKER_FEE_BPS = 0.0022;
 export const FEE_MULTIPLIER = 1 - BASE_TAKER_FEE_BPS;
@@ -35,17 +34,14 @@ type DexContext = {
   // Maps market address to open orders accounts.
   openOrders: Map<string, Array<OpenOrders>>;
   closeOpenOrders: (openOrder: OpenOrders) => void;
-  addOpenOrderAccount: (market: PublicKey, accountData: OpenOrders) => void;
   swapClient: SwapClient;
-  isLoaded: boolean;
 };
-export const _DexContext = React.createContext<DexContext | null>(null);
+const _DexContext = React.createContext<DexContext | null>(null);
 
 export function DexContextProvider(props: any) {
   const [ooAccounts, setOoAccounts] = useState<Map<string, Array<OpenOrders>>>(
     new Map()
   );
-  const [isLoaded, setIsLoaded] = useState(false);
   const swapClient = props.swapClient;
 
   // Removes the given open orders from the context.
@@ -60,16 +56,6 @@ export function DexContextProvider(props: any) {
       newOoAccounts.delete(openOrder.market.toString());
     }
     setOoAccounts(newOoAccounts);
-  };
-
-  const addOpenOrderAccount = async (
-    market: PublicKey,
-    accountData: OpenOrders
-  ) => {
-    const newOoAccounts = new Map(ooAccounts);
-    newOoAccounts.set(market.toString(), [accountData]);
-    setOoAccounts(newOoAccounts);
-    setIsLoaded(true);
   };
 
   // Three operations:
@@ -167,8 +153,6 @@ export function DexContextProvider(props: any) {
           new Promise<Market>((resolve) => resolve(m.account))
         );
       });
-
-      setIsLoaded(true);
     });
   }, [
     swapClient.program.provider.connection,
@@ -180,9 +164,7 @@ export function DexContextProvider(props: any) {
       value={{
         openOrders: ooAccounts,
         closeOpenOrders,
-        addOpenOrderAccount,
         swapClient,
-        isLoaded,
       }}
     >
       {props.children}
@@ -236,73 +218,6 @@ export function useMarket(market?: PublicKey): Market | undefined {
   }
 
   return undefined;
-}
-
-
-export function useUnsettle(): { isUnsettledAmt: Boolean, settleAll: any } {
-  const { openOrders, swapClient } = useDexContext();
-
-  let isUnsettledAmt = false;
-  let settleAll = null;
-
-  const connection = swapClient.program.provider.connection;
-  const publicKey = swapClient.program.provider.wallet.publicKey;
-
-  if (!publicKey) return ({ isUnsettledAmt: false, settleAll: undefined });
-
-  const userOwnedTokenAccMap: any = {};
-
-  connection
-    .getParsedTokenAccountsByOwner(publicKey, {
-      programId: TOKEN_PROGRAM_ID,
-    })
-    .then((b) => {
-      b?.value?.forEach((acc) => {
-        userOwnedTokenAccMap[acc.account.data.parsed.info.mint] =
-          acc.pubkey.toString();
-      });
-    });
-
-  let openAccounts: OpenOrders[] = [];
-  // useEffect(() => {
-    openOrders.forEach((oo) => {
-      oo.forEach((o) => {
-        let bTokenFree = +o.baseTokenFree.toString();
-        let qTokenFree = +o.quoteTokenFree.toString();
-        let settle = bTokenFree + qTokenFree == 0;
-        if (!settle) {
-          isUnsettledAmt = true;
-          openAccounts.push(o);
-        }
-      });
-    });
-  // }, [openAccounts])
-
-  settleAll = async () => {
-    let st = await Promise.all(
-      openAccounts.map(async (oo) => {
-        const marketClient = await Market.load(
-          connection,
-          oo.market,
-          {},
-          DEX_PID
-        );
-        const baseMintAdd = marketClient.baseMintAddress.toString();
-        const quoteMintAdd = marketClient.quoteMintAddress.toString();
-        const baseUserAcc = new PublicKey(userOwnedTokenAccMap[baseMintAdd]);
-        const quoteUserAcc = new PublicKey(userOwnedTokenAccMap[quoteMintAdd]);
-        return await marketClient.makeSettleFundsTransaction(
-          connection,
-          oo,
-          baseUserAcc,
-          quoteUserAcc
-        );
-      })
-    );
-    const txns = st.map((t) => ({ tx: t.transaction, signers: t.signers }));
-    swapClient.program.provider.sendAll(txns, swapClient.program.provider.opts);
-  };
-  return { isUnsettledAmt, settleAll };
 }
 
 // Lazy load the orderbook for a given market.
@@ -435,35 +350,6 @@ export function useMarketName(market: PublicKey): string | null {
   return name;
 }
 
-// TODO handle edge case of insufficient liquidity
-export function usePriceImpact(market?: PublicKey): number | undefined {
-  const { toAmount, toMint } = useSwapContext();
-  const orderbook = useOrderbook(market);
-  if (orderbook === undefined) {
-    return undefined;
-  }
-  const orders = toMint.equals(orderbook.bids.market.baseMintAddress)
-    ? orderbook.asks.items(false)
-    : orderbook.bids.items(true);
-
-  let remainingAmount = toAmount;
-  let order = orders.next();
-  const initialPrice = order.value.price;
-  let priceAfterOrder = initialPrice;
-
-  while (!order.done && remainingAmount > 0) {
-    priceAfterOrder = order.value.price;
-    remainingAmount =
-      remainingAmount > order.value.size
-        ? remainingAmount - order.value.size
-        : 0;
-    order = orders.next();
-  }
-
-  const priceChange = Math.abs(initialPrice - priceAfterOrder);
-  const impact = (priceChange * 100) / initialPrice;
-  return impact;
-}
 // Fair price for a given market, as defined by the mid.
 export function useBbo(market?: PublicKey): Bbo | undefined {
   const orderbook = useOrderbook(market);
@@ -496,11 +382,6 @@ export function useFairRoute(
   const fromBbo = useBbo(route ? route[0] : undefined);
   const fromMarket = useMarket(route ? route[0] : undefined);
   const toBbo = useBbo(route ? route[1] : undefined);
-  const { isWrapUnwrap } = useIsWrapSol(fromMint, toMint);
-
-  if (isWrapUnwrap) {
-    return undefined;
-  }
 
   if (route === null) {
     return undefined;
