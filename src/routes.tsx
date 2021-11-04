@@ -27,7 +27,7 @@ export function Routes() {
             <Route exact path="/orders" component={OpenOrdersPage} />
             <Route exact path="/balances" component={BalancesPage} />
             <Route exact path="/convert" component={ConvertPage} />
-            <Route exact path="/convert" component={SwapPage} />
+            <Route exact path="/swap" component={SwapPage} />
             <Route
               exact
               path="/list-new-market"
