@@ -11,15 +11,15 @@ import {
   Signer,
   ConfirmOptions,
   Connection,
+  PublicKey,
   Transaction,
   TransactionSignature,
-  PublicKey,
 } from "@solana/web3.js";
 import {
   TokenListContainer,
-  TokenListProvider,
+  TokenListProvider
 } from "@solana/spl-token-registry";
-import Swap from "../components/Swap_v1";
+import Swap from "@project-serum/swap-ui";
 
 const useStyles = makeStyles((theme) => ({
   root: {
