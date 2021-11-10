@@ -128,7 +128,7 @@ function TradePageInner() {
   };
 
   const dayPercentChange = useMemo(() => {
-    if (!tradesLoaded || !trades || trades.length == 0 || !markPrice) return;
+    if (!tradesLoaded || !trades || trades.length === 0 || !markPrice) return;
 
     const compareTime = moment().subtract(1, 'days').unix();
     let minAbs = Number.MAX_SAFE_INTEGER;
@@ -203,7 +203,7 @@ function TradePageInner() {
   }, [markPrice]);
 
   const Volume24Hr = useMemo(() => {
-    if (volumeChange == 0) return '-';
+    if (volumeChange === 0) return '-';
 
     return !isNullOrUndefined(volumeChange)
       ? volumeChange!.toLocaleString(undefined, {

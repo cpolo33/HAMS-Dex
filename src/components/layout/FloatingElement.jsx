@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React from 'react';
 import styled from 'styled-components';
 
 const Wrapper = styled.div`
@@ -12,26 +12,13 @@ export default function FloatingElement({
   style = undefined,
   children,
   stretchVertical = false,
-  setHeight = undefined,
 }) {
-  const ref = useRef(null);
-
-  useEffect(() => {
-    if (setHeight) {
-      setTimeout(function () {
-        setHeight(ref.current.offsetHeight);
-      }, 2000);
-    }
-  }, []);
-
   return (
     <Wrapper
-      className="thin-scroll"
       style={{
         height: stretchVertical ? 'calc(100% - 10px)' : undefined,
         ...style,
       }}
-      ref={ref}
     >
       {children}
     </Wrapper>

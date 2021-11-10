@@ -1,5 +1,5 @@
 import { Col, Row, Divider } from 'antd';
-import React, { useState } from 'react';
+import React from 'react';
 import styled from 'styled-components';
 import { useMarket, useBonfidaTrades } from '../utils/markets';
 import { getDecimalCount } from '../utils/utils';
@@ -17,21 +17,21 @@ const SizeTitle = styled(Row)`
 export default function PublicTrades({ smallScreen }) {
   const { baseCurrency, quoteCurrency, market } = useMarket();
   const [trades, loaded] = useBonfidaTrades();
-  const [height, setHeight] = useState(400);
 
   return (
     <FloatingElement
-      setHeight={setHeight}
       style={
-        smallScreen
-          ? {
-            flex: 1, overflow: 'hidden'
-          }
-          : {
-            marginTop: '10px',
-            flex: 1,
-            overflow: 'hidden'
-          }
+        {
+          ...(smallScreen
+            ? { flex: 1, overflow: 'hidden' }
+            : {
+              // marginTop: '10px',
+              minHeight: '400px',
+              maxHeight: 'calc(100vh - 700px)',
+              flex: 1,
+              overflow: 'hidden'
+            }),
+        }
       }
     >
       <Divider>
@@ -49,10 +49,13 @@ export default function PublicTrades({ smallScreen }) {
       {!!trades && loaded && (
         <div
           style={{
-            marginRight: '-20px',
+            marginRight: '-10px',
             paddingRight: '5px',
             overflowY: 'scroll',
-            maxHeight: height - 115,
+            // maxHeight: smallScreen
+            //   ? 'calc(100% - 75px)'
+            //   : 'calc(100vh - 800px)',
+            height: 350
           }}
         >
           {trades.map((trade: BonfidaTrade, i: number) => (

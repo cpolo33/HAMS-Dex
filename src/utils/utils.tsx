@@ -164,7 +164,7 @@ export function isEqual(obj1, obj2, keys) {
 }
 
 export function isNullOrUndefined(value: any) {
-  return value == undefined || value == null;
+  return value === undefined || value === null;
 }
 
 export function flatten(obj, { prefix = '', restrictTo }) {

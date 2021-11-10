@@ -1,9 +1,8 @@
 import {
-  PlusCircleOutlined,
   WalletOutlined,
 } from '@ant-design/icons';
 import { Col, Menu, Row, Button } from 'antd';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useHistory, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
 import { ENDPOINTS, useConnectionConfig } from '../utils/connection';
@@ -17,12 +16,10 @@ import MyTokenDialog from './MyTokenDialog';
 import { useWallet } from '../utils/wallet';
 
 const Wrapper = styled.div`
+  // flex-direction: row;
+  // justify-content: flex-end;
+  // flex-wrap: wrap;
   background: linear-gradient(100.61deg, #090B0B 0%, #1C2222 100%);
-  display: flex;
-  flex-direction: row;
-  justify-content: flex-end;
-  padding: 0px 30px;
-  flex-wrap: wrap;
 `;
 
 const ActionButton = styled(Button)`
@@ -41,18 +38,33 @@ const LogoWrapper = styled.div`
   }
 `;
 
-const EXTERNAL_LINKS = {
-  '/learn': 'https://serum-academy.com/en/serum-dex/',
-  '/add-market': 'https://serum-academy.com/en/add-market/',
-  '/wallet-support': 'https://serum-academy.com/en/wallet-support',
-  '/dex-list': 'https://serum-academy.com/en/dex-list/',
-  '/developer-resources': 'https://serum-academy.com/en/developer-resources/',
-  '/explorer': 'https://explorer.solana.com',
-  '/srm-faq': 'https://projectserum.com/srm-faq',
-  'https://hams.holaplex.com/#/': 'https://hams.holaplex.com/#/',
-  'https://digitaleyes.market/collections/Space%20Hamster': 'https://digitaleyes.market/collections/Space%20Hamster',
-  'https://app.step.finance/#/dashboard': 'https://app.step.finance/#/dashboard',
-};
+const MENU = [
+  {
+    'title': 'TRADE',
+    'link': '/',
+  },
+  {
+    'title': 'Buy HAMS',
+    'link': 'https://dex.solhamster.space/#/market/5j6hdwx4eW3QBYZtRjKiUj7aDA1dxDpveSHBznwq7kUv',
+  },
+  {
+    'title': 'NFTs',
+    'child': [
+      {
+        'title': 'Holaplex',
+        'link': 'https://hams.holaplex.com/#/'
+      },
+      {
+        'title': 'DigitalEyes',
+        'link': 'https://digitaleyes.market/collections/Space%20Hamster'
+      },
+    ]
+  },
+  {
+    'title': 'DASHBOARD',
+    'link': 'https://app.step.finance/#/dashboard',
+  },
+]
 
 export default function TopBar() {
   const { connected } = useWallet();
@@ -67,15 +79,6 @@ export default function TopBar() {
   const [addMyTokenVisible, setAddMyTokenVisible] = useState(false);
   const location = useLocation();
   const history = useHistory();
-
-  const handleClick = useCallback(
-    (e) => {
-      if (!(e.key in EXTERNAL_LINKS)) {
-        history.push(e.key);
-      }
-    },
-    [history],
-  );
 
   const onAddCustomEndpoint = (info: EndpointInfo) => {
     const existingEndpoint = availableEndpoints.some(
@@ -133,6 +136,7 @@ export default function TopBar() {
   const tradePageUrl = location.pathname.startsWith('/market/')
     ? location.pathname
     : getTradePageUrl();
+  const { SubMenu } = Menu;
 
   return (
     <>
@@ -147,92 +151,53 @@ export default function TopBar() {
         onClose={() => setAddMyTokenVisible(false)}
       />
       <Wrapper>
-        <div style={{ display: 'contents' }}>
-          <LogoWrapper onClick={() => history.push(tradePageUrl)}>
-            <img src={'https://i.ibb.co/K79sfcc/logo.png'} alt="" />
-            {'HAMS'}
-          </LogoWrapper>
-          <Menu
-            mode="horizontal"
-            onClick={handleClick}
-            selectedKeys={[location.pathname]}
-            style={{
-              borderBottom: 'none',
-              backgroundColor: 'transparent',
-              alignItems: 'flex-end',
-              flex: 1,
-            }}
-          >
-            <Menu.Item key={tradePageUrl} style={{ margin: '0 0 0 20px' }}>
-              TRADE
-            </Menu.Item>
-            <Menu.Item key="5j6hdwx4eW3QBYZtRjKiUj7aDA1dxDpveSHBznwq7kUv" style={{ margin: '0 0 0 20px', color: '#2abdd2', fontWeight: 'normal' }}>
-              <a href={EXTERNAL_LINKS['5j6hdwx4eW3QBYZtRjKiUj7aDA1dxDpveSHBznwq7kUv']}>Buy HAMS</a>
-            </Menu.Item>
-            <Menu.SubMenu title="NFT" style={{ margin: '0 0 0 20px', color: '#ffffff', fontWeight: 'normal' }}>
-              <Menu.Item key="https://hams.holaplex.com/#/">
-                <a href="https://hams.holaplex.com/#/" target="_blank" rel="noopener noreferrer">Holaplex</a>
-              </Menu.Item>
-              <Menu.Item key="https://digitaleyes.market/collections/Space%20Hamster">
-                <a href="https://digitaleyes.market/collections/Space%20Hamster" target="_blank" rel="noopener noreferrer">DigitalEyes</a>
-              </Menu.Item>
-            </Menu.SubMenu>
-            <Menu.Item key="https://app.step.finance/#/dashboard" style={{ margin: '0 0 0 20px', color: '#2abdd2', fontWeight: 'normal' }}>
-              <a href="https://app.step.finance/#/dashboard" target="_blank" rel="noopener noreferrer">DASHBOARD</a>
-            </Menu.Item>
-            {/*
-            <Tag color="green">v2.0</Tag>
-            */}
-          </Menu>
-          <div>
-            <Row
-              align="middle"
-              style={{ paddingLeft: 5, paddingRight: 5 }}
-              gutter={16}
-            >
-              {connected && (
-                <Col style={{ marginTop: '1px' }}>
-                  <ActionButton
-                    style={{ border: '2px solid #2abdd2' }}
-                    block
+        <Row wrap={false} style={{ height: 50 }}>
+          <Col flex="none">
+            <LogoWrapper onClick={() => history.push(tradePageUrl)} style={{ paddingLeft: 30 }}>
+              <img src={'https://i.ibb.co/K79sfcc/logo.png'} alt="" />
+              <Col style={{ paddingLeft: 5, fontSize: '20px' }}>
+                {'HAMS'}
+              </Col>
+            </LogoWrapper>
+          </Col>
+          <Col flex="auto" style={{ textAlign: 'center' }}>
+            <Menu mode="horizontal"
+              style={{
+                backgroundColor: 'transparent',
+                borderBottom: 'none',
+                fontSize: '16px',
+                display: 'flex',
+                justifyContent: 'center'
+              }}>
+              {MENU.map(item => {
+                if (item.child === undefined) {
+                  return <Menu.Item key={item.title}><a href={item.link} target={item.link.startsWith('/') ? '_self' : '_blank'} rel="noopener noreferrer">{item.title}</a></Menu.Item>
+                } else {
+                  return <SubMenu key={item.title} title={item.title}>
+                    {item.child.map(itemChild => <Menu.Item key={itemChild.title}><a href={itemChild.link} target={itemChild.link.startsWith('/') ? '_self' : '_blank'} rel="noopener noreferrer">{itemChild.title}</a></Menu.Item>)}
+                  </SubMenu>
+                }
+              }
+              )}
+            </Menu>
+          </Col>
+          <Col flex="auto" style={{ textAlign: 'right', display: 'contents' }}>
+            {connected && (
+              <Col flex="none" style={{ marginTop: '1px', display: 'block' }}>
+                <ActionButton
+                  style={{ border: '2px solid #2abdd2' }}
                     size="large"
                     icon={<WalletOutlined />}
                     onClick={() => setAddMyTokenVisible(true)}>
                     My token
                     </ActionButton>
-                </Col>
-              )}
-              {/*
-              <Col>
-                <Popover
-                  content={endpoint}
-                  placement="bottomRight"
-                  title="URL"
-                  trigger="hover"
-                >
-                  <InfoCircleOutlined style={{ color: '#2abdd2' }} />
-                </Popover>
               </Col>
-              <Col>
-                <Select
-                  onSelect={setEndpoint}
-                  value={endpoint}
-                  style={{ marginRight: 8, width: '150px' }}
-                >
-                  {availableEndpoints.map(({ name, endpoint }) => (
-                    <Select.Option value={endpoint} key={endpoint}>
-                      {name}
-                    </Select.Option>
-                  ))}
-                </Select>
-              </Col>
-              */}
-            </Row>
-          </div>
-        </div>
-        <div>
-          <WalletConnect />
-        </div>
+            )}
+          </Col>
+          <Col flex="none" style={{ paddingRight: 20 }}>
+            <WalletConnect />
+          </Col>
+        </Row>
       </Wrapper>
     </>
   );

@@ -159,7 +159,6 @@ const _VERY_SLOW_REFRESH_INTERVAL = 5000 * 1000;
 
 // For things that don't really change
 const _SLOW_REFRESH_INTERVAL = 5 * 1000;
-const _SLOW_REFRESH_INTERVAL_NEW = 60 * 1000;
 
 // For things that change frequently
 const _FAST_REFRESH_INTERVAL = 1000;
@@ -380,7 +379,7 @@ export function useVolumes() {
   const { market, baseCurrency, quoteCurrency } = useMarket();
   const marketAddress = market?.address.toBase58();
   const marketName = baseCurrency! + quoteCurrency!;
-  const isHams = baseCurrency == HAMS_TOKEN || quoteCurrency == HAMS_TOKEN;
+  const isHams = baseCurrency === HAMS_TOKEN || quoteCurrency === HAMS_TOKEN;
 
   const params = isHams ? marketAddress : marketName;
 
