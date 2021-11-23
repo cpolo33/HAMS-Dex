@@ -64,6 +64,18 @@ const MENU = [
     'title': 'DASHBOARD',
     'link': 'https://app.step.finance/#/dashboard',
   },
+  {
+    'title': 'SWAP',
+    'link': 'https://cropper.finance/swap/?from=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v&to=A2T2jDe2bxyEHkKtS8AtrTRmJ9VZRwyY8Kr7oQ8xNyfb',
+  },
+  {
+    'title': 'FARMS',
+    'link': 'https://cropper.finance/farms/?s=Be5mLMaSg1PpBJbK3P6DMAsd9arGi6xeDEApwEVeyHau',
+  },
+    {
+    'title': 'List Your Market',
+    'link': 'https://docs.google.com/forms/d/e/1FAIpQLScR31ZWIVumgGshz68p1EdXi6EMdXtXQH0Z9g7IhRAQT0HLjA/viewform',
+  },
 ]
 
 export default function TopBar() {
@@ -160,17 +172,21 @@ export default function TopBar() {
               </Col>
             </LogoWrapper>
           </Col>
-          <Col flex="auto" style={{ textAlign: 'center' }}>
+          <Col flex="auto" style={{ marginLeft: '15px'}}>
             <Menu mode="horizontal"
               style={{
                 backgroundColor: 'transparent',
                 borderBottom: 'none',
-                fontSize: '16px',
+                fontSize: '14px',
+                fontWeight: 'bold',
                 display: 'flex',
-                justifyContent: 'center'
+                justifyContent: 'flex-start'
               }}>
               {MENU.map(item => {
                 if (item.child === undefined) {
+                  if (item.link.startsWith('https://dex.solhamster.space/#/market/5j6hdwx4eW3QBYZtRjKiUj7aDA1dxDpveSHBznwq7kUv')){
+                    return <Menu.Item key={item.title}><a href={item.link} rel="noopener noreferrer">{item.title}</a></Menu.Item>
+                  }
                   return <Menu.Item key={item.title}><a href={item.link} target={item.link.startsWith('/') ? '_self' : '_blank'} rel="noopener noreferrer">{item.title}</a></Menu.Item>
                 } else {
                   return <SubMenu key={item.title} title={item.title}>
@@ -186,10 +202,10 @@ export default function TopBar() {
               <Col flex="none" style={{ marginTop: '1px', display: 'block' }}>
                 <ActionButton
                   style={{ border: '2px solid #2abdd2' }}
-                    size="large"
-                    icon={<WalletOutlined />}
-                    onClick={() => setAddMyTokenVisible(true)}>
-                    My token
+                  size="large"
+                  icon={<WalletOutlined />}
+                  onClick={() => setAddMyTokenVisible(true)}>
+                  My token
                     </ActionButton>
               </Col>
             )}

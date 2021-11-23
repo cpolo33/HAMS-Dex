@@ -10,7 +10,6 @@ const footerElements = [
   { description: 'Telegram', link: helpUrls.telegram },
   { description: 'Twitter', link: helpUrls.twitter },
   { description: 'NFT', link: helpUrls.nft },
-  { description: 'List your token', link: helpUrls.listYourToken },
 ];
 
 export const CustomFooter = () => {
