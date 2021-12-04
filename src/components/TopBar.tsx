@@ -72,9 +72,13 @@ const MENU = [
     'title': 'FARMS',
     'link': 'https://cropper.finance/farms/?s=Be5mLMaSg1PpBJbK3P6DMAsd9arGi6xeDEApwEVeyHau',
   },
-    {
+  {
     'title': 'List Your Market',
     'link': 'https://docs.google.com/forms/d/e/1FAIpQLScR31ZWIVumgGshz68p1EdXi6EMdXtXQH0Z9g7IhRAQT0HLjA/viewform',
+  },
+  {
+    'title': 'SolCasino',
+    'link': 'https://solcasino.io/r/HE81U8Oy',
   },
 ]
 
@@ -172,7 +176,7 @@ export default function TopBar() {
               </Col>
             </LogoWrapper>
           </Col>
-          <Col flex="auto" style={{ marginLeft: '15px'}}>
+          <Col flex="auto" style={{ marginLeft: '15px' }}>
             <Menu mode="horizontal"
               style={{
                 backgroundColor: 'transparent',
@@ -184,7 +188,7 @@ export default function TopBar() {
               }}>
               {MENU.map(item => {
                 if (item.child === undefined) {
-                  if (item.link.startsWith('https://dex.solhamster.space/#/market/5j6hdwx4eW3QBYZtRjKiUj7aDA1dxDpveSHBznwq7kUv')){
+                  if (item.link.startsWith('https://dex.solhamster.space/#/market/5j6hdwx4eW3QBYZtRjKiUj7aDA1dxDpveSHBznwq7kUv')) {
                     return <Menu.Item key={item.title}><a href={item.link} rel="noopener noreferrer">{item.title}</a></Menu.Item>
                   }
                   return <Menu.Item key={item.title}><a href={item.link} target={item.link.startsWith('/') ? '_self' : '_blank'} rel="noopener noreferrer">{item.title}</a></Menu.Item>
