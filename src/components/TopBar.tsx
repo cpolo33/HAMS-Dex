@@ -72,6 +72,10 @@ const MENU = [
     'title': 'FARMS',
     'link': 'https://cropper.finance/farms/?s=Be5mLMaSg1PpBJbK3P6DMAsd9arGi6xeDEApwEVeyHau',
   },
+    {
+    'title': 'Leverage',
+    'link': 'https://leverage.solhamster.space',
+  },
   {
     'title': 'List Your Market',
     'link': 'https://docs.google.com/forms/d/e/1FAIpQLScR31ZWIVumgGshz68p1EdXi6EMdXtXQH0Z9g7IhRAQT0HLjA/viewform',
