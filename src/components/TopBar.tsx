@@ -69,10 +69,6 @@ const MENU = [
     'link': 'https://cropper.finance/swap/?from=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v&to=A2T2jDe2bxyEHkKtS8AtrTRmJ9VZRwyY8Kr7oQ8xNyfb',
   },
   {
-    'title': 'FARMS',
-    'link': 'https://cropper.finance/farms/?s=Be5mLMaSg1PpBJbK3P6DMAsd9arGi6xeDEApwEVeyHau',
-  },
-    {
     'title': 'Leverage',
     'link': 'https://leverage.solhamster.space',
   },
