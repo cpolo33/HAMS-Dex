@@ -66,7 +66,7 @@ const MENU = [
   },
   {
     'title': 'SWAP',
-    'link': 'https://cropper.finance/swap/?from=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v&to=A2T2jDe2bxyEHkKtS8AtrTRmJ9VZRwyY8Kr7oQ8xNyfb',
+    'link': 'https://jup.ag/swap/USDC-HAMS',
   },
   {
     'title': 'Leverage',
