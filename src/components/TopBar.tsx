@@ -189,7 +189,10 @@ export default function TopBar() {
               {MENU.map(item => {
                 if (item.child === undefined) {
                   if (item.link.startsWith('https://dex.solhamster.space/#/market/5j6hdwx4eW3QBYZtRjKiUj7aDA1dxDpveSHBznwq7kUv')) {
-                    return <Menu.Item key={item.title}><a href={item.link} rel="noopener noreferrer">{item.title}</a></Menu.Item>
+                    return <Menu.Item key={item.title}><a href={item.link}>{item.title}</a></Menu.Item>
+                  }
+                  else if (item.link.startsWith('https://leverage.solhamster.space')) {
+                    return <Menu.Item key={item.title}><a href={item.link}>{item.title}</a></Menu.Item>
                   }
                   return <Menu.Item key={item.title}><a href={item.link} target={item.link.startsWith('/') ? '_self' : '_blank'} rel="noopener noreferrer">{item.title}</a></Menu.Item>
                 } else {
